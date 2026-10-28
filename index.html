@@ -178,6 +178,8 @@ tr.grp td{background:var(--sf2);color:var(--mut);font-weight:700;font-size:12px;
 .tvmsg b{color:var(--tx);font-size:15px}
 .tvmsg .tvlink{display:inline-block;padding:10px 18px;min-height:44px;box-sizing:border-box;border-radius:10px;background:var(--ac);color:var(--acx);font-weight:700;text-decoration:none;font-size:14px;line-height:24px}
 .tvmsg .tvretry{background:none;border:1px solid var(--bd);color:var(--tx);border-radius:10px;padding:9px 16px;min-height:44px;font:inherit;font-size:13px;font-weight:600;cursor:pointer}
+.nchd{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:12px;color:var(--mut);margin-bottom:6px;min-height:18px}
+.nchd b{font-size:12.5px}
 /* 금·코스피 탭: 카드·타일 테두리 없이 배경에 바로 얹은 플랫 형태 */
 #pg .c{background:none;border:0;padding:0}
 #pg .sum div{background:none;border:0;padding:2px 0}
@@ -487,7 +489,7 @@ main{padding:18px 12px 40px}
 <div class="cmp-chart" id="cmp-chart2" hidden></div>
 </div>
 </div>
-<p class="note">실제 주식 가격은 TradingView 기준 나스닥·NYSE 등 실제 증권거래소에 상장된 주식 시세(USD)입니다. 검색 결과를 클릭하면 그 칸 아래에 해당 종목의 TradingView 차트가 펼쳐집니다. —는 실제 주식 가격을 가져올 수 없는 종목입니다.</p>
+<p class="note">실제 주식 가격은 TradingView 기준 나스닥·NYSE 등 실제 증권거래소에 상장된 주식 시세(USD)입니다. 검색 결과를 클릭하면 그 칸 아래에 4시간봉 차트(최근 14일)가 펼쳐집니다. 차트는 Hyperliquid·Binance 시세로 그려 실제 주가와 소폭 차이날 수 있고, 행에 표시되는 가격은 TradingView 기준 실제 주식 가격입니다. —는 실제 주식 가격을 가져올 수 없는 종목입니다.</p>
 </section>
 
 <details class="dnote"><summary>데이터 갱신 안내</summary><p class="note">Hyperliquid·Binance·OKX·Bybit 가격과 원자재 국제 시세(금·은·구리 현물, WTI 유가)는 실시간으로 불러와 15초마다 갱신합니다. KRX 가격과 거래량은 장중(평일 09:00–15:30)에는 30초마다 최근 체결가로 갱신하고, 장이 닫힌 동안에는 최근 거래일 종가로 표시합니다. 장이 닫힌 동안에는 해외 거래소 가격만 움직이고 김프도 그에 따라 변합니다. 국내 금·은 시세는 한국금거래소 고시(2026-10-28), 구리 국내 유통가는 한국물가정보 고시(2026년 9월) 기준이라 실시간으로 움직이지 않습니다. 역외 시세는 해외 거래소 파생상품 기준이며 실제 주식 소유권과 무관합니다. 조회가 안 될 때는 마지막 스냅샷(2026-10-28 조회, KRX는 10/23 종가)을 보여줍니다.</p></details>
@@ -794,6 +796,66 @@ var kt=Object.keys(kr);if(kt.length)fetch("https://scanner.tradingview.com/korea
 hlfetch();setInterval(function(){if(!document.hidden)hlfetch()},60000);
 </script>
 <script>
+/* 네이티브 차트: TradingView 위젯 iframe은 앱 웹뷰·추적 방지 환경에서 막혀 빈 화면이 되기 쉬워,
+   페이지가 이미 가격을 받아오는 Hyperliquid·Binance 캔들 데이터로 SVG 차트를 직접 그린다. */
+function ncDec(p){return p>=10?2:p>=1?3:4}
+function ncFmtT(t){var d=new Date(t);return (d.getMonth()+1)+"/"+d.getDate()}
+function ncFetch(hl,bn){
+var now=Date.now(),start=now-14*24*3600*1000;
+function fromBn(){return fetch("https://www.binance.com/fapi/v1/klines?symbol="+encodeURIComponent(bn)+"&interval=4h&limit=84").then(function(r){if(!r.ok)throw new Error("bn "+r.status);return r.json()}).then(function(j){
+var cs=(j||[]).map(function(x){return{t:+x[0],o:+x[1],h:+x[2],l:+x[3],c:+x[4]}}).filter(function(x){return x.c>0});
+if(cs.length<10)throw new Error("bn short");return{cs:cs,src:"Binance"}})}
+if(!hl)return fromBn();
+return fetch("https://api.hyperliquid.xyz/info",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"candleSnapshot",req:{coin:hl,interval:"4h",startTime:start,endTime:now}})}).then(function(r){if(!r.ok)throw new Error("hl "+r.status);return r.json()}).then(function(j){
+var cs=(j||[]).map(function(x){return{t:+x.t,o:+x.o,h:+x.h,l:+x.l,c:+x.c}}).filter(function(x){return x.c>0});
+if(cs.length<10)throw new Error("hl short");return{cs:cs,src:"Hyperliquid"}}).catch(function(){return fromBn()})}
+function ncSvg(cs,W,H){
+var dec=ncDec(cs[cs.length-1].c),padR=56,padB=18,padT=8,padL=4,pw=W-padR-padL,ph=H-padT-padB;
+var mn=Infinity,mx=-Infinity,i;
+for(i=0;i<cs.length;i++){if(cs[i].l<mn)mn=cs[i].l;if(cs[i].h>mx)mx=cs[i].h}
+var pd=(mx-mn)*0.06||mx*0.01||1;mn-=pd;mx+=pd;
+function Y(v){return padT+(mx-v)/(mx-mn)*ph}
+var slot=pw/cs.length,bw=Math.max(1,Math.min(9,slot*0.62)),out="";
+out+='<rect x="0" y="0" width="'+W+'" height="'+H+'" style="fill:var(--sf)"/>';
+for(i=0;i<=4;i++){var v=mn+(mx-mn)*i/4,y=Y(v);
+out+='<line x1="'+padL+'" y1="'+y.toFixed(1)+'" x2="'+(padL+pw)+'" y2="'+y.toFixed(1)+'" style="stroke:var(--bd)" stroke-width="1"/>';
+out+='<text x="'+(padL+pw+6)+'" y="'+(y+4).toFixed(1)+'" style="fill:var(--mut);font-size:11px">'+f(v,dec)+'</text>'}
+var last=cs[cs.length-1],ly=Y(last.c);
+out+='<line x1="'+padL+'" y1="'+ly.toFixed(1)+'" x2="'+(padL+pw)+'" y2="'+ly.toFixed(1)+'" style="stroke:var(--mut)" stroke-width="1" stroke-dasharray="4 3"/>';
+for(i=0;i<cs.length;i++){var c=cs[i],x=padL+slot*i+slot/2,up=c.c>=c.o,col=up?"var(--up)":"var(--dn)";
+out+='<line x1="'+x.toFixed(1)+'" y1="'+Y(c.h).toFixed(1)+'" x2="'+x.toFixed(1)+'" y2="'+Y(c.l).toFixed(1)+'" style="stroke:'+col+'" stroke-width="1"/>';
+var y1=Y(Math.max(c.o,c.c)),y2=Y(Math.min(c.o,c.c));
+out+='<rect x="'+(x-bw/2).toFixed(1)+'" y="'+y1.toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+Math.max(1,y2-y1).toFixed(1)+'" style="fill:'+col+'"/>'}
+var seen={};
+[0,Math.floor(cs.length/3),Math.floor(2*cs.length/3),cs.length-1].forEach(function(ix){if(seen[ix])return;seen[ix]=1;var x=padL+slot*ix+slot/2;
+out+='<text x="'+Math.min(Math.max(x-12,padL),padL+pw-24).toFixed(1)+'" y="'+(H-4)+'" style="fill:var(--mut);font-size:11px">'+ncFmtT(cs[ix].t)+'</text>'});
+return '<svg class="ncsvg" width="'+W+'" height="'+H+'" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="가격 차트" style="display:block;border:1px solid var(--bd);border-radius:6px">'+out+'</svg>'}
+var NCW=[];
+function ncDrawSvg(w){
+var cs=w._nccs;if(!cs||!cs.length)return;
+var W=w.clientWidth;if(!(W>0))return;
+var H=Math.max(230,(w.clientHeight||360)-30);
+var hd=w.querySelector(".nchd"),chg=(cs[cs.length-1].c/cs[0].o-1)*100,cc=chg>0?"up":chg<0?"dn":"";
+if(hd)hd.innerHTML='<span>'+w._ncsrc+' · 4시간봉 · 최근 14일</span><b class="'+cc+'">'+(chg>0?"+":"")+chg.toFixed(2)+'%</b>';
+var svg=ncSvg(cs,W,H),old=w.querySelector(".ncsvg");
+if(old)old.outerHTML=svg;else w.insertAdjacentHTML("beforeend",svg)}
+function ncMount(w,opt){
+if(!w)return;w._ncopt=opt;w._nccs=null;
+if(NCW.indexOf(w)<0)NCW.push(w);
+w.innerHTML='<div class="nchd"><span>차트 불러오는 중…</span></div><div class="tvmsg">차트 불러오는 중…</div>';
+ncFetch(opt.hl,opt.bn).then(function(r){
+if(w._ncopt!==opt)return;
+w._nccs=r.cs;w._ncsrc=r.src;
+w.innerHTML='<div class="nchd"></div>';
+ncDrawSvg(w)}).catch(function(){
+if(w._ncopt!==opt)return;
+var tv=opt.tv?'<a class="tvlink" href="https://www.tradingview.com/chart/?symbol='+encodeURIComponent(opt.tv)+'" target="_blank" rel="noopener">TradingView에서 열기</a>':"";
+w.innerHTML='<div class="tvmsg"><b>차트를 불러오지 못했어요</b><span>차트 데이터를 가져오지 못했어요. 연결 문제일 수 있으니 다시 시도하거나 TradingView에서 확인해 보세요.</span>'+tv+'<button type="button" class="tvretry">다시 시도</button></div>';
+var b=w.querySelector(".tvretry");if(b)b.addEventListener("click",function(){ncMount(w,opt)})})}
+var ncRzT=0;
+window.addEventListener("resize",function(){clearTimeout(ncRzT);ncRzT=setTimeout(function(){for(var i=0;i<NCW.length;i++){var w=NCW[i];if(w._nccs&&w.clientWidth>0)ncDrawSvg(w)}},200)});
+</script>
+<script>
 function gd2(n){return f(n,n<10?3:2)}
 function tvtheme(){var t=document.documentElement.getAttribute("data-theme");if(t)return t;return window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"}
 var MT={
@@ -850,14 +912,9 @@ function mfetch(){["au","ag","cu"].forEach(function(k){var m=MT[k];
 fetch("https://api.gold-api.com/price/"+m.sym).then(function(r){return r.json()}).then(function(j){
 var p=parseFloat(j.price);if(p>0){m.usd=p;m.live=true;mupd(k);mtime(k,j)}}).catch(function(){})});mfetchOil()}
 var mtSt={};
-function mtv(k){var sym=MT[k].tv;el(k+"-tv").textContent="TradingView · "+sym;
-if(mtSt[k]&&mtSt[k].tm)clearTimeout(mtSt[k].tm);
-var st=mtSt[k]={ok:false,tm:0},w=el(k+"-tvw");
-w.innerHTML='<div class="tvmsg" id="'+k+'-tvmsg">차트 불러오는 중…</div><iframe title="TradingView 차트" src="https://www.tradingview.com/widgetembed/?symbol='+encodeURIComponent(sym)+'&interval=240&theme='+tvtheme()+'&style=1&timezone=Asia%2FSeoul&locale=kr&hidesidetoolbar=1&symboledit=0&saveimage=0&withdateranges=1" frameborder="0" scrolling="no" allowfullscreen></iframe>';
-w.querySelector("iframe").addEventListener("load",function(){st.ok=true;if(st.tm)clearTimeout(st.tm);var m=el(k+"-tvmsg");if(m)m.hidden=true});
-st.tm=setTimeout(function(){if(st.ok)return;var m=el(k+"-tvmsg");if(!m)return;
-m.innerHTML='<b>차트가 브라우저에서 막혔어요</b><span>광고 차단 확장이나 브라우저의 추적 방지 설정이 TradingView 차트를 막으면 차트 자리가 비어 보여요. 아래 버튼으로 TradingView에서 바로 볼 수 있어요.</span><a class="tvlink" href="https://www.tradingview.com/chart/?symbol='+encodeURIComponent(sym)+'" target="_blank" rel="noopener">TradingView에서 열기</a><button type="button" class="tvretry">다시 시도</button>';
-m.querySelector(".tvretry").addEventListener("click",function(){mtv(k)})},6000)}
+var MTCOIN={au:["xyz:GOLD","XAUUSDT"],ag:["xyz:SILVER","XAGUSDT"],cu:["xyz:COPPER","COPPERUSDT"],oil:["xyz:CL","CLUSDT"]};
+function mtv(k){var sym=MT[k].tv;el(k+"-tv").innerHTML="4시간봉 · 최근 14일 · <a href=\"https://www.tradingview.com/chart/?symbol="+encodeURIComponent(sym)+"\" target=\"_blank\" rel=\"noopener\" style=\"color:inherit;text-decoration:underline\">TradingView에서 열기</a>";
+ncMount(el(k+"-tvw"),{hl:MTCOIN[k][0],bn:MTCOIN[k][1],tv:sym})}
 function mtvShow(k){if(mtLd[k])return;mtLd[k]=true;mtv(k)}
 var mtCur="au";
 var MTNM={au:"금",ag:"은",cu:"구리",oil:"유가"};
@@ -1015,25 +1072,21 @@ return '<b>$'+f(r.p,r.p<10?3:2)+'</b>'+chg}
 function cmpLoadTv(idx){
 var can=CMPSEL[idx];if(!can)return;
 var sym=cmpTvSym(can),w=el("cmp-tvw"+idx);if(!w)return;
-if(CMPST[idx]&&CMPST[idx].tm)clearTimeout(CMPST[idx].tm);
-var st=CMPST[idx]={ok:false,tm:0,sym:sym};
-w.innerHTML='<div class="tvmsg" id="cmp-tvmsg'+idx+'">차트 불러오는 중…</div><iframe title="TradingView 차트" src="https://www.tradingview.com/widgetembed/?symbol='+encodeURIComponent(sym)+'&interval=240&theme='+tvtheme()+'&style=1&timezone=Asia%2FSeoul&locale=kr&hidesidetoolbar=1&symboledit=0&saveimage=0&withdateranges=1" frameborder="0" scrolling="no" allowfullscreen></iframe>';
-w.querySelector("iframe").addEventListener("load",function(){st.ok=true;if(st.tm)clearTimeout(st.tm);var m=el("cmp-tvmsg"+idx);if(m)m.hidden=true});
-st.tm=setTimeout(function(){if(st.ok)return;var m=el("cmp-tvmsg"+idx);if(!m)return;
-m.innerHTML='<b>차트가 브라우저에서 막혔어요</b><span>광고 차단 확장이나 브라우저의 추적 방지 설정이 TradingView 차트를 막으면 차트 자리가 비어 보여요. 아래 버튼으로 TradingView에서 바로 볼 수 있어요.</span><a class="tvlink" href="https://www.tradingview.com/chart/?symbol='+encodeURIComponent(sym)+'" target="_blank" rel="noopener">TradingView에서 열기</a><button type="button" class="tvretry">다시 시도</button>';
-m.querySelector(".tvretry").addEventListener("click",function(){cmpLoadTv(idx)})},6000)}
+CMPST[idx]={sym:sym};
+var bnT=can;try{bnT=fromCan("bn",can)}catch(e){}
+var bnSym;try{bnSym=brow(bnT+"_")?blsym(bnT+"_"):blsym(bnT)}catch(e){bnSym=bnT+"USDT"}
+ncMount(w,{hl:"xyz:"+can,bn:bnSym,tv:sym})}
 function cmpRenderChart(idx){
 var can=CMPSEL[idx],box=el("cmp-chart"+idx);if(!box)return;
 if(!can){box.hidden=true;box.innerHTML="";CMPST[idx]=null;return}
 var sym=cmpTvSym(can),nm=cmpName(can);
 box.hidden=false;
-box.innerHTML='<div class="cmp-chart-hd"><div class="cmp-nm"><b>'+can+'</b>'+(nm?'<small>'+nm+'</small>':'')+'</div><button type="button" class="cmp-chart-x" data-cmpclose="'+idx+'" aria-label="차트 닫기">×</button><div class="cmp-chart-price"><small>실제 주식 · 나스닥/NYSE</small><span id="cmp-chart-price'+idx+'">'+cmpPriceHtml(can)+'</span></div></div><div class="tvbar"><span class="gread">TradingView · '+sym+'</span></div><div class="tvw cmp-tvw" id="cmp-tvw'+idx+'"></div>';
+box.innerHTML='<div class="cmp-chart-hd"><div class="cmp-nm"><b>'+can+'</b>'+(nm?'<small>'+nm+'</small>':'')+'</div><button type="button" class="cmp-chart-x" data-cmpclose="'+idx+'" aria-label="차트 닫기">×</button><div class="cmp-chart-price"><small>실제 주식 · 나스닥/NYSE</small><span id="cmp-chart-price'+idx+'">'+cmpPriceHtml(can)+'</span></div></div><div class="tvbar"><span class="gread">4시간봉 · 최근 14일 · <a href="https://www.tradingview.com/chart/?symbol='+encodeURIComponent(sym)+'" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">TradingView에서 열기</a></span></div><div class="tvw cmp-tvw" id="cmp-tvw'+idx+'"></div>';
 cmpLoadTv(idx)}
 function cmpSyncChart(idx){
 var can=CMPSEL[idx];if(!can)return;
 var pe=el("cmp-chart-price"+idx);if(pe)pe.innerHTML=cmpPriceHtml(can);
-var st=CMPST[idx],sym=cmpTvSym(can);
-if(st&&st.sym!==sym&&(REALP[can]&&REALP[can].tv))cmpRenderChart(idx)}
+}
 function cmpSyncCharts(){cmpSyncChart(1);cmpSyncChart(2)}
 function cmpToggle(idx,can){
 if(CMPSEL[idx]===can){CMPSEL[idx]=null;cmpRenderChart(idx)}
