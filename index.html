@@ -785,7 +785,7 @@ OD.forEach(function(x){if(!KCODE[x[0]]&&!seen[x[0]]){seen[x[0]]=1;list.push(x[0]
 YD.forEach(function(x){if(!KCODE[x[0]]&&!seen[x[0]]){seen[x[0]]=1;list.push(x[0])}});
 var chunks=[];for(i=0;i<list.length;i+=100)chunks.push(list.slice(i,i+100));
 if(!chunks.length)return;var done=0;
-function fin(){if(++done===chunks.length){calc();draw()}}
+function fin(){if(++done===chunks.length){calc();draw();try{if(window.__cmpRefresh)window.__cmpRefresh()}catch(e){}}}
 chunks.forEach(function(ch){fetch("https://scanner.tradingview.com/america/scan",{method:"POST",headers:{"Content-Type":"text/plain;charset=UTF-8"},body:JSON.stringify({columns:["name","market_cap_basic"],filter:[{left:"name",operation:"in_range",right:ch}],range:[0,ch.length+10]})}).then(function(r){return r.json()}).then(function(j){(j.data||[]).forEach(function(x){if(x.d&&x.d[1]>0)MCU[x.d[0]]=x.d[1]});fin()}).catch(fin)})}
 amcap();
 function hlfetch(){var us=[],kr={},i;
@@ -1101,9 +1101,9 @@ if(!listEl)return;
 if(!qRaw){if(hint)hint.hidden=false;listEl.innerHTML="";if(CMPSEL[idx]){CMPSEL[idx]=null;cmpRenderChart(idx)}return}
 if(hint)hint.hidden=true;
 var matched=cmpUniverse().filter(function(can){var nm=cmpName(can);return can.toUpperCase().indexOf(qUp)>=0||(nm&&nm.indexOf(qRaw)>=0)});
-matched.sort(function(a,b){var as=a.toUpperCase().indexOf(qUp)===0?0:1,bs=b.toUpperCase().indexOf(qUp)===0?0:1;if(as!==bs)return as-bs;return a<b?-1:a>b?1:0});
+matched.sort(function(a,b){var ca=null,cb=null;try{ca=(typeof capOf==="function")?capOf(a):null}catch(e){}try{cb=(typeof capOf==="function")?capOf(b):null}catch(e){}if(ca!=null&&cb!=null&&ca!==cb)return cb-ca;if(ca!=null&&cb==null)return -1;if(ca==null&&cb!=null)return 1;var as=a.toUpperCase().indexOf(qUp)===0?0:1,bs=b.toUpperCase().indexOf(qUp)===0?0:1;if(as!==bs)return as-bs;return a<b?-1:a>b?1:0});
 if(!matched.length){listEl.innerHTML='<div style="padding:20px 10px;color:var(--mut);font-size:13px">검색 결과가 없어요</div>';return}
-var top=matched.slice(0,60);
+var top=matched.slice(0,10);
 var selOnly=CMPSEL[idx]&&matched.indexOf(CMPSEL[idx])>=0;
 var shown=selOnly?[CMPSEL[idx]]:top;
 fetchReal(shown);
@@ -1116,9 +1116,10 @@ return '<div class="cmp-real"><small>실제 주식 · 나스닥/NYSE</small><b>$
 var html=shown.map(function(can){
 var nm=cmpName(can),open=CMPSEL[idx]===can;
 return '<div class="cmp-row'+(open?" is-open":"")+'" data-cmpcan="'+can+'" data-cmpidx="'+idx+'" role="button" tabindex="0" aria-expanded="'+open+'" aria-label="'+can+' 차트 '+(open?"닫기":"보기")+'"><div class="cmp-hd">'+av(can)+'<div class="cmp-nm"><b>'+can+'</b>'+(nm?'<small>'+nm+'</small>':'')+'</div><span class="cmp-chev">'+(open?"차트 닫기 ▴":"차트 보기 ▾")+'</span></div>'+realHtml(can)+'</div>'}).join("");
-if(!selOnly&&matched.length>60)html+='<p class="note">결과가 많아 상위 60개만 보여줍니다. 검색어를 더 입력해 좁혀보세요.</p>';
+if(!selOnly&&matched.length>10)html+='<p class="note">결과가 많아 시총이 큰 상위 10개만 보여줍니다. 검색어를 더 입력해 좁혀보세요.</p>';
 listEl.innerHTML=html}
 function cmpDraw(){cmpDrawPane(1);cmpDrawPane(2)}
+try{window.__cmpRefresh=cmpDraw}catch(e){}
 var cq1=el("cq1");if(cq1)cq1.addEventListener("input",function(){if(CMPSEL[1]){CMPSEL[1]=null;cmpRenderChart(1)}cmpDrawPane(1)});
 var cq2=el("cq2");if(cq2)cq2.addEventListener("input",function(){if(CMPSEL[2]){CMPSEL[2]=null;cmpRenderChart(2)}cmpDrawPane(2)});
 [1,2].forEach(function(idx){
