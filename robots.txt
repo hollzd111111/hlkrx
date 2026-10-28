@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://hollzd111111.github.io/hlkrx/sitemap.xml
