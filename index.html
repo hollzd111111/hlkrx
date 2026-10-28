@@ -478,13 +478,13 @@ main{padding:18px 12px 40px}
 <div class="cmp2">
 <div class="cmp-pane">
 <div class="srch"><input id="cq1" placeholder="첫 번째 종목 검색" aria-label="비교 첫 번째 종목 검색"></div>
-<p class="note cmp-pane-hint" id="cmp-hint1">종목 이름이나 티커를 검색해보세요. 실제 주식 가격을 보여줍니다.</p>
+<p class="note cmp-pane-hint" id="cmp-hint1">종목 이름이나 티커를 검색해보세요. (예: 엔비디아, 테슬라, NVDA) 실제 주식 가격을 보여줍니다.</p>
 <div id="cmp-list1"></div>
 <div class="cmp-chart" id="cmp-chart1" hidden></div>
 </div>
 <div class="cmp-pane">
 <div class="srch"><input id="cq2" placeholder="두 번째 종목 검색" aria-label="비교 두 번째 종목 검색"></div>
-<p class="note cmp-pane-hint" id="cmp-hint2">종목 이름이나 티커를 검색해보세요. 실제 주식 가격을 보여줍니다.</p>
+<p class="note cmp-pane-hint" id="cmp-hint2">종목 이름이나 티커를 검색해보세요. (예: 엔비디아, 테슬라, NVDA) 실제 주식 가격을 보여줍니다.</p>
 <div id="cmp-list2"></div>
 <div class="cmp-chart" id="cmp-chart2" hidden></div>
 </div>
@@ -913,8 +913,34 @@ fetch("https://api.gold-api.com/price/"+m.sym).then(function(r){return r.json()}
 var p=parseFloat(j.price);if(p>0){m.usd=p;m.live=true;mupd(k);mtime(k,j)}}).catch(function(){})});mfetchOil()}
 var mtSt={};
 var MTCOIN={au:["xyz:GOLD","XAUUSDT"],ag:["xyz:SILVER","XAGUSDT"],cu:["xyz:COPPER","COPPERUSDT"],oil:["xyz:CL","CLUSDT"]};
-function mtv(k){var sym=MT[k].tv;el(k+"-tv").innerHTML="4시간봉 · 최근 14일 · <a href=\"https://www.tradingview.com/chart/?symbol="+encodeURIComponent(sym)+"\" target=\"_blank\" rel=\"noopener\" style=\"color:inherit;text-decoration:underline\">TradingView에서 열기</a>";
-ncMount(el(k+"-tvw"),{hl:MTCOIN[k][0],bn:MTCOIN[k][1],tv:sym})}
+var mtTvT={},mtTvJs=null,mtTvWait=[];
+function mtLoadTvJs(cb){
+if(window.TradingView&&TradingView.widget){cb(true);return}
+mtTvWait.push(cb);
+if(mtTvJs)return;
+mtTvJs=1;
+var s=document.createElement("script");
+s.src="https://s3.tradingview.com/tv.js";s.async=true;
+s.onload=function(){var ok=!!(window.TradingView&&TradingView.widget);mtTvWait.splice(0).forEach(function(f){f(ok)})};
+s.onerror=function(){mtTvWait.splice(0).forEach(function(f){f(false)})};
+document.head.appendChild(s)}
+function mtv(k){var sym=MT[k].tv,w=el(k+"-tvw");if(!w)return;
+el(k+"-tv").innerHTML="TradingView 차트 · <a href=\"https://www.tradingview.com/chart/?symbol="+encodeURIComponent(sym)+"\" target=\"_blank\" rel=\"noopener\" style=\"color:inherit;text-decoration:underline\">TradingView에서 열기</a>";
+clearTimeout(mtTvT[k]);
+var tok=String(Date.now())+k;w._mtTok=tok;
+w.innerHTML='<div class="tvmsg"><span>차트 불러오는 중…</span></div><div id="'+k+'-tvw-in" style="width:100%;height:100%"></div>';
+var ready=false;
+mtTvT[k]=setTimeout(function(){if(!ready&&w._mtTok===tok)mtTvFail(k)},6000);
+mtLoadTvJs(function(ok){
+if(w._mtTok!==tok)return;
+if(!ok){ready=true;mtTvFail(k);return}
+try{
+var widget=new TradingView.widget({container_id:k+"-tvw-in",symbol:sym,interval:"240",theme:tvtheme(),style:"1",timezone:"Asia/Seoul",locale:"kr",hide_side_toolbar:true,allow_symbol_change:false,save_image:false,width:"100%",height:"100%"});
+widget.onChartReady(function(){if(w._mtTok!==tok)return;ready=true;clearTimeout(mtTvT[k]);var m=w.querySelector(".tvmsg");if(m)m.hidden=true});
+}catch(e){ready=true;mtTvFail(k)}})}
+function mtTvFail(k){var sym=MT[k].tv,w=el(k+"-tvw");if(!w)return;
+w.innerHTML='<div class="tvmsg"><b>차트가 브라우저에서 막혔어요</b><span>이 브라우저에서 TradingView 차트 연결이 막혀 표시할 수 없어요. TradingView에서 직접 확인하거나 다시 시도해 보세요.</span><a class="tvlink" href="https://www.tradingview.com/chart/?symbol='+encodeURIComponent(sym)+'" target="_blank" rel="noopener">TradingView에서 열기</a><button type="button" class="tvretry">다시 시도</button></div>';
+var b=w.querySelector(".tvretry");if(b)b.addEventListener("click",function(){mtv(k)})}
 function mtvShow(k){if(mtLd[k])return;mtLd[k]=true;mtv(k)}
 var mtCur="au";
 var MTNM={au:"금",ag:"은",cu:"구리",oil:"유가"};
@@ -1029,6 +1055,7 @@ document.addEventListener("keydown",function(e){if(e.key==="Escape"&&!panel.hidd
 </script>
 <script>
 (function(){
+var CMPNM={NVDA:["NVIDIA","엔비디아"],TSLA:["Tesla","테슬라"],AAPL:["Apple","애플"],MSFT:["Microsoft","마이크로소프트"],GOOGL:["Alphabet (Google)","알파벳·구글"],META:["Meta","메타"],AMZN:["Amazon","아마존"],AMD:["AMD","에이엠디"],INTC:["Intel","인텔"],AVGO:["Broadcom","브로드컴"],MU:["Micron","마이크론"],MRNA:["Moderna","모더나"],SNDK:["SanDisk","샌디스크"],WDC:["Western Digital","웨스턴디지털"],TSM:["TSMC","티에스엠씨"],ASML:["ASML","에이에스엠엘"],ARM:["Arm","암"],QCOM:["Qualcomm","퀄컴"],AMAT:["Applied Materials","어플라이드머티리얼즈"],LRCX:["Lam Research","램리서치"],KLAC:["KLA","케이엘에이"],TER:["Teradyne","테라다인"],MRVL:["Marvell","마벨"],NET:["Cloudflare","클라우드플레어"],CRWD:["CrowdStrike","크라우드스트라이크"],PANW:["Palo Alto Networks","팔로알토네트웍스"],PLTR:["Palantir","팔란티어"],COIN:["Coinbase","코인베이스"],HOOD:["Robinhood","로빈후드"],MSTR:["MicroStrategy","마이크로스트래티지"],CRCL:["Circle","서클"],SPCX:["SpaceX","스페이스X"],BABA:["Alibaba","알리바바"],NFLX:["Netflix","넷플릭스"],DIS:["Disney","디즈니"],ORCL:["Oracle","오라클"],CRM:["Salesforce","세일즈포스"],ADBE:["Adobe","어도비"],NOW:["ServiceNow","서비스나우"],IBM:["IBM","아이비엠"],DELL:["Dell","델"],HPE:["Hewlett Packard Enterprise","휴렛팩커드"],CSCO:["Cisco","시스코"],ACN:["Accenture","액센추어"],TXN:["Texas Instruments","텍사스인스트루먼트"],LLY:["Eli Lilly","일라이릴리"],UNH:["UnitedHealth","유나이티드헬스"],JNJ:["Johnson & Johnson","존슨앤드존슨"],ABBV:["AbbVie","애브비"],MRK:["Merck","머크"],AMGN:["Amgen","암젠"],NVO:["Novo Nordisk","노보노디스크"],COST:["Costco","코스트코"],WMT:["Walmart","월마트"],HD:["Home Depot","홈디포"],MCD:["McDonald's","맥도날드"],KO:["Coca-Cola","코카콜라"],NKE:["Nike","나이키"],V:["Visa","비자"],PYPL:["PayPal","페이팔"],JPM:["JPMorgan","제이피모건"],BAC:["Bank of America","뱅크오브아메리카"],GS:["Goldman Sachs","골드만삭스"],BX:["Blackstone","블랙스톤"],BRKB:["Berkshire Hathaway","버크셔해서웨이"],CVX:["Chevron","셰브론"],XOM:["Exxon Mobil","엑슨모빌"],CAT:["Caterpillar","캐터필러"],GE:["GE Aerospace","GE에어로스페이스"],GEV:["GE Vernova","GE버노바"],UBER:["Uber","우버"],SHOP:["Shopify","쇼피파이"],SNOW:["Snowflake","스노우플레이크"],DDOG:["Datadog","데이터독"],MDB:["MongoDB","몽고디비"],GTLB:["GitLab","깃랩"],TEAM:["Atlassian","아틀라시안"],PATH:["UiPath","유아이패스"],APP:["AppLovin","앱러빈"],TTWO:["Take-Two","테이크투"],ZM:["Zoom","줌"],RDDT:["Reddit","레딧"],EBAY:["eBay","이베이"],SONY:["Sony","소니"],NOK:["Nokia","노키아"],GME:["GameStop","게임스탑"],AMC:["AMC Entertainment","AMC"],CVNA:["Carvana","카바나"],RIVN:["Rivian","리비안"],SOFI:["SoFi","소파이"],DKNG:["DraftKings","드래프트킹스"],IONQ:["IonQ","아이온큐"],RKLB:["Rocket Lab","로켓랩"],ASTS:["AST SpaceMobile"],OKLO:["Oklo","오클로"],SMCI:["Super Micro Computer","슈퍼마이크로컴퓨터"],CRWV:["CoreWeave","코어위브"],CBRS:["Cerebras","세레브라스"],NBIS:["Nebius","네비우스"],BE:["Bloom Energy","블룸에너지"],IREN:["IREN"],MARA:["MARA Holdings","마라"],RIOT:["Riot Platforms","라이엇플랫폼즈"],BMNR:["BitMine Immersion","비트마인"],HIMS:["Hims & Hers","힘스앤드허스"],GLW:["Corning","코닝"],VRT:["Vertiv","버티브"],ANET:["Arista Networks","아리스타네트웍스"],COHR:["Coherent","코히런트"],LITE:["Lumentum","루멘텀"],AAOI:["Applied Optoelectronics"],AKAM:["Akamai","아카마이"],CIEN:["Ciena","시에나"],SNPS:["Synopsys","시놉시스"],TWLO:["Twilio","트윌리오"],OKTA:["Okta","옥타"],ZS:["Zscaler","지스케일러"],FLEX:["Flex","플렉스"],ON:["ON Semiconductor","온세미컨덕터"],UMC:["United Microelectronics","UMC"],TSEM:["Tower Semiconductor","타워세미컨덕터"],ALAB:["Astera Labs","아스테라랩스"],CRDO:["Credo Technology","크레도"],APLD:["Applied Digital","어플라이드디지털"],IBKR:["Interactive Brokers","인터랙티브브로커스"],ISRG:["Intuitive Surgical","인튜이티브서지컬"],MDT:["Medtronic","메드트로닉"],VST:["Vistra","비스트라"],CEG:["Constellation Energy","컨스텔레이션에너지"],MP:["MP Materials","MP머티리얼즈"],HUT:["Hut 8","헛8"],TEM:["Tempus AI","템퍼스AI"],FLY:["Firefly Aerospace","파이어플라이"],LUNR:["Intuitive Machines","인튜이티브머신즈"],RDW:["Redwire","레드와이어"],OUST:["Ouster","아우스터"],VICR:["Vicor","바이코"],SIMO:["Silicon Motion","실리콘모션"],CGNX:["Cognex","코그넥스"],ROK:["Rockwell Automation","로크웰오토메이션"],GPRO:["GoPro","고프로"],PENG:["Penguin Solutions","펭귄솔루션즈"],AEHR:["Aehr Test Systems"],TTMI:["TTM Technologies"],OSCR:["Oscar Health","오스카헬스"],VKTX:["Viking Therapeutics","바이킹테라퓨틱스"],RUM:["Rumble","럼블"],POET:["POET Technologies"],SPY:["S&P 500 ETF","S&P500 ETF"],QQQ:["Nasdaq-100 ETF","나스닥100 ETF"],TQQQ:["Nasdaq-100 3x ETF","나스닥100 3배 ETF"],SQQQ:["Nasdaq-100 Short 3x ETF","나스닥100 인버스 3배 ETF"],SOXL:["Semiconductor 3x ETF","반도체 3배 ETF"],SOXS:["Semiconductor Short 3x ETF","반도체 인버스 3배 ETF"],SMH:["Semiconductor ETF","반도체 ETF"],IWM:["Russell 2000 ETF","러셀2000 ETF"],TLT:["20+ Year Treasury ETF","미국 장기국채 ETF"],TMF:["Treasury 3x ETF","장기국채 3배 ETF"],TBT:["Treasury Short 2x ETF","장기국채 인버스 ETF"],TZA:["Small Cap Short 3x ETF","러셀2000 인버스 3배 ETF"],UVXY:["Volatility 1.5x ETF","변동성 ETF"],XLE:["Energy Sector ETF","에너지 ETF"],XBI:["Biotech ETF","바이오 ETF"],GDX:["Gold Miners ETF","금광 ETF"],URNM:["Uranium Miners ETF","우라늄 ETF"],BITO:["Bitcoin ETF","비트코인 ETF"],USO:["Oil ETF","원유 ETF"],EWJ:["Japan ETF","일본 ETF"],EWT:["Taiwan ETF","대만 ETF"],EWZ:["Brazil ETF","브라질 ETF"],NVDL:["NVIDIA 2x ETF","엔비디아 2배 ETF"],TSLL:["Tesla 2x ETF","테슬라 2배 ETF"],MSTU:["MicroStrategy 2x ETF","마이크로스트래티지 2배 ETF"],MUU:["Micron 2x ETF","마이크론 2배 ETF"],MAGS:["Magnificent 7 ETF","매그니피센트7 ETF"],DJT:["Trump Media","트럼프미디어"],WEN:["Wendy's","웬디스"],BB:["BlackBerry","블랙베리"],KIOXIA:["Kioxia","키옥시아"],SOFTBANK:["SoftBank","소프트뱅크"],TENCENT:["Tencent","텐센트"],XIAOMI:["Xiaomi","샤오미"],MEITUAN:["Meituan","메이퇀"],PDD:["Pinduoduo (PDD)","핀둬둬"],KUAISHOU:["Kuaishou","콰이쇼우"],BYD:["BYD","비야디"],HK0700:["Tencent (HK)","텐센트"],HK0992:["Lenovo (HK)","레노버"],HK1810:["Xiaomi (HK)","샤오미"],CSOPSKHYNIX2L:["SK Hynix 2x ETF (CSOP)","SK하이닉스 2배 ETF"],CSOPSAMSUNG2L:["Samsung 2x ETF (CSOP)","삼성전자 2배 ETF"],POPMART:["Pop Mart","팝마트"],SHEIN:["Shein","쉬인"],UNITREE:["Unitree Robotics","유니트리"],ZHIPU:["Zhipu AI","즈푸AI"],MINIMAX:["MiniMax","미니맥스"],CAMBRICON:["Cambricon","캠브리콘"],GIGADEV:["GigaDevice","기가디바이스"],ZHONGJI:["Zhongji Innolight","중지이노라이트"],CXMT:["CXMT (ChangXin Memory)","창신메모리"],ANTHROPIC:["Anthropic","앤트로픽"],OPENAI:["OpenAI","오픈AI"],OURA:["Oura","오우라"],SKHY:["SK Hynix","SK하이닉스"],US100:["Nasdaq-100 Index","나스닥100 지수"],US500:["S&P 500 Index","S&P500 지수"],JP225:["Nikkei 225 Index","닛케이225 지수"],KR200:["KOSPI 200","코스피200"]};
 function cmpName(can){
 if(typeof NM!=="undefined"&&NM[can])return NM[can];
 try{
@@ -1036,7 +1063,9 @@ var bt=fromCan("bn",can);if(typeof BNM!=="undefined"&&BNM[bt])return BNM[bt];
 var ot=fromCan("okx",can);if(typeof ONM!=="undefined"&&ONM[ot])return ONM[ot];
 var yt=fromCan("by",can);if(typeof YNM!=="undefined"&&YNM[yt])return YNM[yt];
 }catch(e){}
+var cn=CMPNM[can];if(cn)return cn[1]||cn[0]||"";
 return ""}
+function cmpEnName(can){var cn=CMPNM[can];return cn?(cn[0]||""):""}
 function cmpUniverse(){
 var seen={},list=[];
 function add(ex,arr){for(var i=0;i<arr.length;i++){var raw=String(arr[i][0]).replace(/_$/,"");var can=toCan(ex,raw);if(!seen[can]){seen[can]=1;list.push(can)}}}
@@ -1100,7 +1129,7 @@ var listEl=el("cmp-list"+idx),hint=el("cmp-hint"+idx);
 if(!listEl)return;
 if(!qRaw){if(hint)hint.hidden=false;listEl.innerHTML="";if(CMPSEL[idx]){CMPSEL[idx]=null;cmpRenderChart(idx)}return}
 if(hint)hint.hidden=true;
-var matched=cmpUniverse().filter(function(can){var nm=cmpName(can);return can.toUpperCase().indexOf(qUp)>=0||(nm&&nm.indexOf(qRaw)>=0)});
+var matched=cmpUniverse().filter(function(can){var nm=cmpName(can),en=cmpEnName(can);return can.toUpperCase().indexOf(qUp)>=0||(nm&&nm.indexOf(qRaw)>=0)||(en&&en.toUpperCase().indexOf(qUp)>=0)});
 matched.sort(function(a,b){var ca=null,cb=null;try{ca=(typeof capOf==="function")?capOf(a):null}catch(e){}try{cb=(typeof capOf==="function")?capOf(b):null}catch(e){}if(ca!=null&&cb!=null&&ca!==cb)return cb-ca;if(ca!=null&&cb==null)return -1;if(ca==null&&cb!=null)return 1;var as=a.toUpperCase().indexOf(qUp)===0?0:1,bs=b.toUpperCase().indexOf(qUp)===0?0:1;if(as!==bs)return as-bs;return a<b?-1:a>b?1:0});
 if(!matched.length){listEl.innerHTML='<div style="padding:20px 10px;color:var(--mut);font-size:13px">검색 결과가 없어요</div>';return}
 var top=matched.slice(0,10);
