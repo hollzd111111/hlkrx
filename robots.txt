@@ -1,4 +1,6 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://jabjunet.github.io/hlkrx/sitemap.xml
+Sitemap: https://jabjunet.pages.dev/sitemap.xml
+
+
