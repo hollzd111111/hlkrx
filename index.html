@@ -463,7 +463,6 @@ main{padding:18px 12px 40px}
 .cmp-lwclg{font-size:12px;color:var(--mut);min-height:18px;margin-top:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cmp-lwclg b{color:var(--tx)}
 .cmp-lwc{position:relative;height:400px;margin-top:4px;border:1px solid var(--bd);border-radius:6px;background:var(--sf);overflow:hidden;touch-action:none}
-.cmp-zoom button{min-height:30px;padding:4px 11px;font-size:12.5px}
 @media(min-width:1024px){.cmp-lwc{height:520px}}
 .cmp-mrg-note{color:var(--mut);font-size:12.5px;line-height:1.6;margin:8px 0 0}
 /* 비교 탭: 검색 후보 — 가격 박스 없는 작은 한 줄 행 */
@@ -1995,19 +1994,6 @@ var d=w._mdata,last=d[d.length-1].time,rng=MRNG[idx]||"all";
 if(rng==="all"){w._lwc.timeScale().fitContent();return}
 var span=(rng==="5y"?5:1)*365.25*86400;
 try{w._lwc.timeScale().setVisibleRange({from:last-span,to:last+86400})}catch(e){w._lwc.timeScale().fitContent()}}
-/* 확대·축소 버튼: 휠·핀치의 기본 확대 속도로는 수천 개 구간에서 원하는 깊이까지
-   가려면 제스처를 여러 번 반복해야 해서, 한 번에 절반씩 줄이고 늘리는 버튼을 함께 둔다.
-   최소 6개 봉까지 확대할 수 있고, 전체 버튼은 일봉이면 선택한 기간 보기로 되돌린다. */
-function mrgZoom(idx,dir){
-var w=el("cmp-lwc"+idx);if(!w||!w._lwc||!w._mdata||!w._mdata.length)return;
-var ts=w._lwc.timeScale(),n=w._mdata.length;
-if(dir==="all"){if((CMPINT[idx]||"1d")==="1d")mrgApplyRange(idx);else{try{ts.fitContent()}catch(e){}}return}
-var vr=null;try{vr=ts.getVisibleLogicalRange()}catch(e){}
-if(!vr||!(vr.to>vr.from))return;
-var len=vr.to-vr.from,ctr=(vr.from+vr.to)/2;
-var nl=dir==="in"?len/2:len*2;
-if(nl<6)nl=6;if(nl>n+12)nl=n+12;
-try{ts.setVisibleLogicalRange({from:ctr-nl/2,to:ctr+nl/2})}catch(e){}}
 function mrgErr(idx,w,msg){
 if(w._lwc){try{w._lwc.remove()}catch(e){}w._lwc=null}
 w.innerHTML='<div class="tvmsg"><b>차트를 불러오지 못했어요</b><span>'+msg+'</span><button type="button" class="tvretry">다시 시도</button></div>';
@@ -2056,7 +2042,7 @@ var src=CMPSRC[idx]||"real";
 var oldL=box.querySelector(".cmp-lwc");if(oldL){oldL._mTok="x";if(oldL._lwc){try{oldL._lwc.remove()}catch(e){}oldL._lwc=null}}
 if(src==="bn"&&!CMPEX[can]&&CMP_TOP10[can]){
 var iv0=CMPINT[idx]||"1d",mr0=MRNG[idx]||"all";
-box.innerHTML='<div class="cmp-mrg-hd"><div class="pair cmp-iv" role="group" aria-label="차트 봉 간격"><button type="button" data-ci="1d" aria-pressed="'+String(iv0==="1d")+'">일봉</button><button type="button" data-ci="5m" aria-pressed="'+String(iv0==="5m")+'">5분</button><button type="button" data-ci="15m" aria-pressed="'+String(iv0==="15m")+'">15분</button><button type="button" data-ci="1h" aria-pressed="'+String(iv0==="1h")+'">1시간</button></div><div class="pair cmp-hist-rng" data-mrng role="group" aria-label="일봉 기간"'+(iv0==="1d"?"":" hidden")+'><button type="button" data-mr="all" aria-pressed="'+String(mr0==="all")+'">전체</button><button type="button" data-mr="5y" aria-pressed="'+String(mr0==="5y")+'">5년</button><button type="button" data-mr="1y" aria-pressed="'+String(mr0==="1y")+'">1년</button></div><div class="pair cmp-zoom" role="group" aria-label="차트 확대·축소"><button type="button" data-zm="in">＋ 확대</button><button type="button" data-zm="out">－ 축소</button><button type="button" data-zm="all">전체</button></div></div><div class="cmp-lwclg" id="cmp-lwclg'+idx+'"></div><div class="cmp-lwc" id="cmp-lwc'+idx+'"></div><p class="cmp-mrg-note">일봉은 상장 전 실제 주식과 상장 후 바이낸스 선물을 하나로 이은 차트예요. 분봉은 선물 상장 이후 구간만 있어요.</p>';
+box.innerHTML='<div class="cmp-mrg-hd"><div class="pair cmp-iv" role="group" aria-label="차트 봉 간격"><button type="button" data-ci="1d" aria-pressed="'+String(iv0==="1d")+'">일봉</button><button type="button" data-ci="5m" aria-pressed="'+String(iv0==="5m")+'">5분</button><button type="button" data-ci="15m" aria-pressed="'+String(iv0==="15m")+'">15분</button><button type="button" data-ci="1h" aria-pressed="'+String(iv0==="1h")+'">1시간</button></div><div class="pair cmp-hist-rng" data-mrng role="group" aria-label="일봉 기간"'+(iv0==="1d"?"":" hidden")+'><button type="button" data-mr="all" aria-pressed="'+String(mr0==="all")+'">전체</button><button type="button" data-mr="5y" aria-pressed="'+String(mr0==="5y")+'">5년</button><button type="button" data-mr="1y" aria-pressed="'+String(mr0==="1y")+'">1년</button></div></div><div class="cmp-lwclg" id="cmp-lwclg'+idx+'"></div><div class="cmp-lwc" id="cmp-lwc'+idx+'"></div><p class="cmp-mrg-note">일봉은 상장 전 실제 주식과 상장 후 바이낸스 선물을 하나로 이은 차트예요. 분봉은 선물 상장 이후 구간만 있어요.</p>';
 cmpSyncSrc(idx);
 cmpLoadMerged(idx);
 return}
@@ -2136,7 +2122,7 @@ listEl.addEventListener("click",function(e){if(listEl._mdT&&Date.now()-listEl._m
 listEl.addEventListener("keydown",function(e){if(e.key!=="Enter"&&e.key!==" ")return;var row=e.target.closest?e.target.closest("[data-cmpcan]"):null;if(!row)return;e.preventDefault();cmpToggle(idx,row.getAttribute("data-cmpcan"))});
 }
 var chartEl=el("cmp-chart"+idx);
-if(chartEl)chartEl.addEventListener("click",function(e){var zm=e.target.closest?e.target.closest("[data-zm]"):null;if(zm){mrgZoom(idx,zm.getAttribute("data-zm"));return}var ci=e.target.closest?e.target.closest("[data-ci]"):null;if(ci){CMPINT[idx]=ci.getAttribute("data-ci");chartEl.querySelectorAll("[data-ci]").forEach(function(x){x.setAttribute("aria-pressed",String(x===ci))});var mrw=chartEl.querySelector("[data-mrng]");if(mrw)mrw.hidden=CMPINT[idx]!=="1d";cmpLoadMerged(idx);return}var mrb=e.target.closest?e.target.closest("[data-mr]"):null;if(mrb){MRNG[idx]=mrb.getAttribute("data-mr");chartEl.querySelectorAll("[data-mr]").forEach(function(x){x.setAttribute("aria-pressed",String(x===mrb))});mrgApplyRange(idx);return}var hr=e.target.closest?e.target.closest("[data-hr]"):null;if(hr){HISTR[idx]=hr.getAttribute("data-hr");chartEl.querySelectorAll("[data-hr]").forEach(function(x){x.setAttribute("aria-pressed",String(x===hr))});histDraw(idx);return}var b=e.target.closest?e.target.closest("[data-cmpclose]"):null;if(b)cmpCloseChart(idx)});
+if(chartEl)chartEl.addEventListener("click",function(e){var ci=e.target.closest?e.target.closest("[data-ci]"):null;if(ci){CMPINT[idx]=ci.getAttribute("data-ci");chartEl.querySelectorAll("[data-ci]").forEach(function(x){x.setAttribute("aria-pressed",String(x===ci))});var mrw=chartEl.querySelector("[data-mrng]");if(mrw)mrw.hidden=CMPINT[idx]!=="1d";cmpLoadMerged(idx);return}var mrb=e.target.closest?e.target.closest("[data-mr]"):null;if(mrb){MRNG[idx]=mrb.getAttribute("data-mr");chartEl.querySelectorAll("[data-mr]").forEach(function(x){x.setAttribute("aria-pressed",String(x===mrb))});mrgApplyRange(idx);return}var hr=e.target.closest?e.target.closest("[data-hr]"):null;if(hr){HISTR[idx]=hr.getAttribute("data-hr");chartEl.querySelectorAll("[data-hr]").forEach(function(x){x.setAttribute("aria-pressed",String(x===hr))});histDraw(idx);return}var b=e.target.closest?e.target.closest("[data-cmpclose]"):null;if(b)cmpCloseChart(idx)});
 });
 setInterval(function(){var had={};[1,2].forEach(function(idx){if(CMPSEL[idx])had[idx]=CMPSEL[idx]});REALP={};REALPEND={};EXP={};EXPEND={};var pcSec=el("pc");if(pcSec&&!pcSec.hidden){cmpDraw();[1,2].forEach(function(idx){if(had[idx]&&CMPSEL[idx]===had[idx]&&REALP[had[idx]]===undefined)fetchReal([had[idx]])})}},60000);
 })();
