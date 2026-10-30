@@ -617,13 +617,13 @@ main{padding:18px 12px 40px}
 <div class="cmp2">
 <div class="cmp-pane">
 <div class="srch"><input id="cq1" placeholder="첫 번째 종목 검색" aria-label="비교 첫 번째 종목 검색"></div>
-<div class="pair cmp-src" id="cmp-src1" role="group" aria-label="가격·차트 출처"><button type="button" data-s="real" aria-pressed="true">나스닥</button><button type="button" data-s="bn" aria-pressed="false">바이낸스</button><button type="button" data-s="hl" aria-pressed="false">하이퍼리퀴드</button></div>
+<div class="pair cmp-src" id="cmp-src1" role="group" aria-label="가격·차트 출처"><button type="button" data-s="real" aria-pressed="true">나스닥</button><button type="button" data-s="bn" aria-pressed="false">바이낸스</button></div>
 <div id="cmp-list1"></div>
 <div class="cmp-chart" id="cmp-chart1" hidden></div>
 </div>
 <div class="cmp-pane">
 <div class="srch"><input id="cq2" placeholder="두 번째 종목 검색" aria-label="비교 두 번째 종목 검색"></div>
-<div class="pair cmp-src" id="cmp-src2" role="group" aria-label="가격·차트 출처"><button type="button" data-s="real" aria-pressed="true">나스닥</button><button type="button" data-s="bn" aria-pressed="false">바이낸스</button><button type="button" data-s="hl" aria-pressed="false">하이퍼리퀴드</button></div>
+<div class="pair cmp-src" id="cmp-src2" role="group" aria-label="가격·차트 출처"><button type="button" data-s="real" aria-pressed="true">나스닥</button><button type="button" data-s="bn" aria-pressed="false">바이낸스</button></div>
 <div id="cmp-list2"></div>
 <div class="cmp-chart" id="cmp-chart2" hidden></div>
 </div>
@@ -1670,8 +1670,8 @@ var can=CMPSEL[idx],box=el("cmp-chart"+idx);if(!box)return;
 if(!can){box.hidden=true;box.innerHTML="";CMPST[idx]=null;return}
 box.hidden=false;
 var src=CMPSRC[idx]||"real";
-var hist=!CMPEX[can]&&(src==="bn"||src==="hl");
-var srcLab=src==="bn"?"바이낸스":"하이퍼리퀴드";
+var hist=!CMPEX[can]&&src==="bn";
+var srcLab="바이낸스";
 box.innerHTML='<div class="tvw cmp-tvw" id="cmp-tvw'+idx+'"></div>'+(hist?'<div class="cmp-hist"><div class="cmp-hist-hd"><b>과거 차트 이어보기</b><span>'+can+' · 나스닥/NYSE 실제 주식 · 전체 기간</span></div><p class="cmp-hist-note">'+srcLab+' 주식 선물은 상장한 지 얼마 안 돼 그 이전 차트가 없습니다. 선물 가격은 실제 주식을 따라가므로, 상장 전 구간은 아래 실제 주식 차트로 이어서 보세요. 차트 아래 기간 버튼에서 전체·5년·1년을 고를 수 있습니다.</p><div class="tvw cmp-tvw cmp-hist-tvw" id="cmp-htvw'+idx+'"></div></div>':"");
 cmpSyncSrc(idx);
 cmpLoadTv(idx);
@@ -1687,10 +1687,10 @@ else{CMPSEL[idx]=can;if(REALP[can]===undefined)fetchReal([can]);cmpRenderChart(i
 cmpDrawPane(idx)}
 function cmpCloseChart(idx){CMPSEL[idx]=null;cmpRenderChart(idx);cmpDrawPane(idx)}
 var CMPSRC={1:"real",2:"real"};
-var SRCNM={real:"나스닥/NYSE",bn:"Binance",hl:"Hyperliquid"};
+var SRCNM={real:"나스닥/NYSE",bn:"Binance"};
 function srcPrice(can,src){
 if(CMPEX[can]){var e=EXP[can];if(e===undefined)return undefined;if(!e||!(e.p>0))return null;return{p:e.p,c:e.c}}
-if(src==="bn"||src==="hl"){var r2=xrow(src,fromCan(src,can));if(!r2||!(r2[1]>0))return null;return{p:r2[1],c:r2[2]}}
+if(src==="bn"){var r2=xrow(src,fromCan(src,can));if(!r2||!(r2[1]>0))return null;return{p:r2[1],c:r2[2]}}
 var rr=REALP[can];if(rr===undefined)return undefined;if(!rr||!(rr.p>0))return null;return{p:rr.p,c:rr.c}}
 function priceHtml(idx,can){
 if(CMPEX[can]){
@@ -1708,7 +1708,6 @@ function cmpChartSym(idx,can){
 if(CMPEX[can])return CMPEX[can].tv;
 var s=CMPSRC[idx]||"real";
 if(s==="bn")return "BINANCE:"+can+"USDT.P";
-if(s==="hl")return "HYPERLIQUID:"+can+"USD.P";
 return cmpTvSym(can)}
 function cmpSyncSrc(idx){
 var w=el("cmp-src"+idx);if(w)w.querySelectorAll("button").forEach(function(b){b.setAttribute("aria-pressed",String(b.dataset.s===(CMPSRC[idx]||"real")))})}
