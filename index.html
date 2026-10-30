@@ -1277,6 +1277,9 @@ function syncOp(){var op=isOp();var a=el("lg-op");if(a)a.hidden=!op;var b=el("pf
 function show(){var u=saved();openB.hidden=!!u;who.hidden=!u;if(u){var p=prof();var nick=p.nick||u;idT.textContent=nick;setAv(el("lg-pav-t"),el("lg-pav-img"),nick,p.img||"")}syncOp()}
 function open(){el("lg-msg").hidden=true;ov.hidden=false}
 el("lg-g").addEventListener("click",function(){var m=el("lg-msg");if(typeof window.__hlkrxFbSignIn==="function"){m.hidden=true;window.__hlkrxFbSignIn(false)}else{m.textContent="로그인을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.";m.hidden=false}});
+/* 채팅 쪽 로그인 흐름이 실패를 알릴 때 쓰는 공용 창구: 사이트 로그인으로 시작한 실패는 채팅 패널이 아니라
+   이 로그인 모달에 보여야 사용자가 볼 수 있다 (리다이렉트에서 돌아온 실패도 여기로 온다) */
+window.__hlkrxShowLoginError=function(msg){var m=el("lg-msg");if(m&&msg){m.textContent=msg;m.hidden=false}ov.hidden=false};
 /* 사이트 로그인은 채팅과 같은 Firebase 구글 인증을 쓴다: 한 번 로그인하면 프로필과 채팅이 함께 켜진다.
    Firebase 로그인 상태가 바뀌면 이 기기에 저장된 로그인 표시(hlkrx_uid·프로필)도 거기에 맞춰 동기화한다 */
 var fbSyncStarted=false;
@@ -1341,6 +1344,7 @@ form=document.getElementById("chat-form"),input=document.getElementById("chat-in
 err=document.getElementById("chat-err"),gbtn=document.getElementById("chat-gbtn");
 var started=false,authStarted=false,fbUser=null,msgRef=null,lastSnap=null,firstRender=true;
 var authKnown=false;
+var loginSrc="chat";
 function cfgReady(){try{var c=(typeof FIREBASE_CONFIG!=="undefined")?FIREBASE_CONFIG:null;return !!(c&&typeof c.apiKey==="string"&&c.apiKey.trim()&&typeof c.databaseURL==="string"&&c.databaseURL.trim())}catch(e){return false}}
 function opEmail(){return (typeof OPERATOR_EMAIL!=="undefined"?String(OPERATOR_EMAIL||""):"").trim().toLowerCase()}
 function isOpEmail(em){var oe=opEmail();return !!oe&&String(em||"").trim().toLowerCase()===oe}
@@ -1387,17 +1391,24 @@ firstRender=false;
 /* 사이트 로그인과 채팅이 함께 쓰는 구글 로그인: 인증이 Firebase 하나로 통일돼 있어, 여기서 로그인하면 오른쪽 위 프로필까지 한 번에 켜지고 채팅도 바로 쓸 수 있다.
    팝업이 막히는 환경(앱 내 브라우저 등)에서는 페이지 이동 방식으로 자동 전환한다 */
 function startFbSignIn(fromChat){
+loginSrc=fromChat?"chat":"site";
 initAuth();
 err.hidden=true;
-if(typeof firebase==="undefined"||!firebase.auth){err.textContent="채팅을 불러오지 못했어요. 패널을 닫았다가 다시 열어 주세요.";err.hidden=false;return}
+if(typeof firebase==="undefined"||!firebase.auth){err.textContent="채팅을 불러오지 못했어요. 패널을 닫았다가 다시 열어 주세요.";err.hidden=false;if(!fromChat&&typeof window.__hlkrxShowLoginError==="function")window.__hlkrxShowLoginError("로그인을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.");return}
 var auth=firebase.auth();
 var prov=new firebase.auth.GoogleAuthProvider();
 function goRedirect(){
-if(fromChat){saveDraft();try{sessionStorage.setItem("hlkrx_chat_redirect","1")}catch(e){}}
-auth.signInWithRedirect(prov).catch(function(e){try{sessionStorage.removeItem("hlkrx_chat_redirect")}catch(x){}chatLoginFail(e)});
+if(fromChat)saveDraft();
+/* 리다이렉트로 나간다는 사실과 출발점(채팅/사이트)을 남겨 둔다: 돌아온 페이지에서 로그인 상태가
+   끝내 없으면 '조용한 유실'로 진단해 사용자에게 알리고 팝업 잠금을 푸는 데 쓴다 */
+try{sessionStorage.setItem("hlkrx_login_redirect",loginSrc);if(fromChat)sessionStorage.setItem("hlkrx_chat_redirect","1")}catch(e){}
+auth.signInWithRedirect(prov).catch(function(e){try{sessionStorage.removeItem("hlkrx_chat_redirect");sessionStorage.removeItem("hlkrx_login_redirect")}catch(x){}chatLoginFail(e)});
 }
 function goPopup(){
-auth.signInWithPopup(prov).catch(function(e){
+auth.signInWithPopup(prov).then(function(cred){
+/* 팝업이 성공 결과를 돌려주면 인증 상태 알림을 기다리지 않고 바로 로그인 상태로 반영한다 */
+if(cred&&cred.user){fbUser=cred.user;authKnown=true;try{sessionStorage.removeItem("hlkrx_chat_popupfail")}catch(e){}syncFt();render()}
+}).catch(function(e){
 var code=e&&e.code?String(e.code):"";
 if(code==="auth/popup-closed-by-user"||code==="auth/cancelled-popup-request"){if(fromChat)chatLoginFail(e);return}
 try{sessionStorage.setItem("hlkrx_chat_popupfail","1")}catch(x){}
@@ -1418,8 +1429,21 @@ if(!cfgReady())return;
 if(typeof firebase==="undefined"||!firebase.initializeApp){authStarted=false;return}
 try{if(!firebase.apps||!firebase.apps.length)firebase.initializeApp(FIREBASE_CONFIG)}catch(e){}
 try{
-firebase.auth().onAuthStateChanged(function(u){fbUser=u||null;authKnown=true;syncFt();render()});
-if(firebase.auth().getRedirectResult){firebase.auth().getRedirectResult().then(function(res){if(res&&res.user){fbUser=res.user;authKnown=true;syncFt();render()}}).catch(function(e){if(window.__hlkrxRedirectReturn)chatLoginFail(e)})}
+/* 리다이렉트 복귀 진단: 리다이렉트로 나갔다 돌아왔는데 결과 조회도 끝났고 인증 상태도 확정됐는데
+   끝내 로그인 상태가 없으면, 브라우저가 돌아오는 길에 로그인 결과를 버린 것이다 (사파리 등에서
+   firebaseapp.com 쪽 저장이 막히면 오류 없이 이런 일이 생긴다). 조용히 넘기지 않고 사용자에게
+   알리고, 팝업 실패 잠금도 풀어 다음 시도에서는 팝업 방식으로 다시 시도하게 한다 */
+var rdSettled=false,auSettled=false,rdDone=false;
+function rdFrom(){try{var s=sessionStorage.getItem("hlkrx_login_redirect")||"";if(s)return s}catch(e){}return window.__hlkrxRedirectReturn?"chat":""}
+function rdClear(){try{sessionStorage.removeItem("hlkrx_login_redirect");sessionStorage.removeItem("hlkrx_chat_popupfail")}catch(e){}}
+function rdCheck(){
+if(rdDone)return;var src=rdFrom();if(!src)return;
+if(fbUser){rdDone=true;rdClear();return}
+if(rdSettled&&auSettled){rdDone=true;loginSrc=src;rdClear();loginLostFail()}
+}
+firebase.auth().onAuthStateChanged(function(u){fbUser=u||null;authKnown=true;auSettled=true;syncFt();render();rdCheck()});
+if(firebase.auth().getRedirectResult){firebase.auth().getRedirectResult().then(function(res){if(res&&res.user){fbUser=res.user;authKnown=true;syncFt();render()}rdSettled=true;rdCheck()}).catch(function(e){rdSettled=true;var src=rdFrom();if(src){loginSrc=src;rdClear();chatLoginFail(e)}else if(window.__hlkrxRedirectReturn)chatLoginFail(e);rdCheck()})}
+else rdSettled=true;
 }catch(e){}
 }
 function initChat(){
@@ -1441,6 +1465,13 @@ if(code==="auth/popup-closed-by-user"||code==="auth/cancelled-popup-request"){er
 else if(code==="auth/unauthorized-domain"){err.textContent="이 주소에서는 구글 로그인이 허용되지 않아요. jabjunet.pages.dev 주소로 접속해 다시 시도해 주세요."}
 else{err.textContent="로그인에 실패했어요. 앱 안 브라우저(카카오톡 등)에서는 구글 로그인이 막힐 수 있어요. 크롬이나 사파리에서 열면 더 잘 돼요."}
 err.hidden=false;
+/* 사이트 로그인으로 시작한 실패는 숨은 채팅 패널이 아니라 로그인 모달에도 같은 메시지를 띄운다 */
+if(loginSrc!=="chat"&&typeof window.__hlkrxShowLoginError==="function")window.__hlkrxShowLoginError(err.textContent);
+}
+function loginLostFail(){
+var msg="구글 로그인을 마쳤는데 로그인 상태가 돌아오지 않았어요. 이 브라우저에서는 로그인 저장이 막혀 있을 수 있어요. 사파리나 크롬에서 jabjunet.pages.dev를 직접 열어 다시 로그인해 주세요.";
+err.textContent=msg;err.hidden=false;
+if(loginSrc!=="chat"&&typeof window.__hlkrxShowLoginError==="function")window.__hlkrxShowLoginError(msg);
 }
 function inAppBrowser(){var ua=navigator.userAgent||"";return /KAKAOTALK|FBAN|FBAV|FB_IAB|Instagram|Line\/|NAVER\(inapp|DaumApps|; wv\)/i.test(ua)}
 form.addEventListener("submit",function(e){
