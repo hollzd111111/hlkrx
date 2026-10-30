@@ -627,6 +627,7 @@ main{padding:18px 12px 40px}
 <p class="chat-state" id="chat-state">채팅 준비 중이에요</p>
 <div class="chat-ft" id="chat-ft" hidden>
 <p class="chat-hint" id="chat-hint">로그인 상태를 확인하고 있어요. 잠시만 기다려 주세요.</p>
+<button type="button" class="chat-gbtn" id="chat-gbtn" hidden>구글 로그인하고 글쓰기</button>
 <form class="chat-form" id="chat-form"><input id="chat-input" type="text" maxlength="500" placeholder="메시지를 입력하세요" aria-label="채팅 메시지 입력" autocomplete="off"><button type="submit" class="chat-send">전송</button></form>
 <p class="chat-err" id="chat-err" role="alert" hidden></p>
 </div>
@@ -1337,7 +1338,7 @@ var btn=document.getElementById("chat-open"),panel=document.getElementById("chat
 msgs=document.getElementById("chat-msgs"),state=document.getElementById("chat-state"),
 ft=document.getElementById("chat-ft"),hint=document.getElementById("chat-hint"),
 form=document.getElementById("chat-form"),input=document.getElementById("chat-input"),
-err=document.getElementById("chat-err");
+err=document.getElementById("chat-err"),gbtn=document.getElementById("chat-gbtn");
 var started=false,authStarted=false,fbUser=null,msgRef=null,lastSnap=null,firstRender=true;
 var authKnown=false;
 function cfgReady(){try{var c=(typeof FIREBASE_CONFIG!=="undefined")?FIREBASE_CONFIG:null;return !!(c&&typeof c.apiKey==="string"&&c.apiKey.trim()&&typeof c.databaseURL==="string"&&c.databaseURL.trim())}catch(e){return false}}
@@ -1347,10 +1348,11 @@ function chatProf(){try{var p=JSON.parse(localStorage.getItem("hlkrx_prof")||"{}
 function initial(nm){var a=Array.from(String(nm||""));return a.length?a[0]:"?"}
 function fmtTime(ts){if(!ts||typeof ts!=="number")return "";var d=new Date(ts),now=new Date();var hm=d.toLocaleTimeString("ko-KR",{hour:"numeric",minute:"2-digit"});return d.toDateString()===now.toDateString()?hm:(d.getMonth()+1)+"/"+d.getDate()+" "+hm}
 function syncFt(){var logged=!!fbUser;form.hidden=false;
+if(gbtn)gbtn.hidden=!(authKnown&&!logged);
 if(hint){
 if(logged){var p=chatProf();var nm=String(p.nick||"").trim()||fbUser.displayName||"로그인";hint.textContent=nm+"님으로 로그인돼 있어요. 아래 칸에 메시지를 쓰고 전송을 누르면 바로 올라가요."}
 else if(!authKnown)hint.textContent="로그인 상태를 확인하고 있어요. 잠시만 기다려 주세요.";
-else hint.textContent="글을 쓰려면 구글 로그인이 필요해요. 오른쪽 위 로그인 한 번이면 채팅까지 바로 켜져요. 로그인 전에는 메시지를 읽을 수만 있어요.";
+else hint.textContent="글을 쓰려면 구글 로그인이 필요해요. 아래 버튼으로 로그인하면 바로 글을 쓸 수 있어요. 로그인 전에는 메시지를 읽을 수만 있어요.";
 }
 if(logged){err.hidden=true;restoreDraft()}}
 function saveDraft(){try{if(input.value)sessionStorage.setItem("hlkrx_chat_draft",input.value)}catch(e){}}
@@ -1443,8 +1445,13 @@ err.hidden=false;
 function inAppBrowser(){var ua=navigator.userAgent||"";return /KAKAOTALK|FBAN|FBAV|FB_IAB|Instagram|Line\/|NAVER\(inapp|DaumApps|; wv\)/i.test(ua)}
 form.addEventListener("submit",function(e){
 e.preventDefault();
-if(!fbUser){saveDraft();startFbSignIn(true);return}
-if(!msgRef)return;
+/* 전송 버튼에서는 로그인을 시작하지 않는다: 팝업이 막히는 환경에서는 로그인 흐름이 페이지 이동(리다이렉트)으로
+   넘어가 화면 전체가 새로고침되고 쓰던 글이 안 올라간 것처럼 보이기 때문이다. 로그인은 패널 안 버튼의 몫이다 */
+if(!fbUser){saveDraft();
+if(!authKnown){err.textContent="로그인 상태를 확인하고 있어요. 잠시 후 다시 눌러 주세요."}
+else{err.textContent="글을 쓰려면 로그인이 필요해요. 위의 구글 로그인 버튼을 누르면 쓰던 글이 그대로 남아 있어요."}
+err.hidden=false;return}
+if(!msgRef){err.textContent="채팅 연결이 아직 준비되지 않았어요. 패널을 닫았다가 다시 열어 주세요.";err.hidden=false;return}
 var t=input.value.trim();if(!t)return;
 if(t.length>500)t=t.slice(0,500);
 var profNow=chatProf();var profNick=String(profNow.nick||"").trim();var profImg=String(profNow.img||"").trim();
@@ -1453,6 +1460,7 @@ if(pushRef&&typeof pushRef.catch==="function")pushRef.catch(function(){err.textC
 try{sessionStorage.removeItem("hlkrx_chat_draft")}catch(e){}
 input.value="";input.focus();
 });
+if(gbtn)gbtn.addEventListener("click",function(){saveDraft();err.hidden=true;startFbSignIn(true)});
 function open(){panel.hidden=false;btn.setAttribute("aria-expanded","true");initChat();if(lastSnap)render()}
 function close(){panel.hidden=true;btn.setAttribute("aria-expanded","false")}
 window.__closeChat=close;
