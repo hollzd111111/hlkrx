@@ -437,6 +437,14 @@ main{padding:18px 12px 40px}
 @media(max-width:520px){.cmp-tvw{height:400px}.cmp-chev{font-size:11.5px}}
 @media(min-width:1024px){.cmp-tvw{height:520px}}
 .cmp-src{margin:8px 0 2px}
+/* 비교 탭: 해외 선물 상장 전 과거 차트 이어보기 (나스닥 실주식) */
+.cmp-hist{margin-top:14px;border-top:1px solid var(--bd);padding-top:12px}
+.cmp-hist-hd{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.cmp-hist-hd b{font-size:14px}
+.cmp-hist-hd span{color:var(--mut);font-size:12px}
+.cmp-hist-note{color:var(--mut);font-size:12.5px;line-height:1.6;margin:6px 0 8px}
+.cmp-hist-tvw{height:340px}
+@media(min-width:1024px){.cmp-hist-tvw{height:420px}}
 /* 비교 탭: 검색 후보 — 가격 박스 없는 작은 한 줄 행 */
 .cmp-sug{display:flex;align-items:center;gap:8px;padding:8px 6px;border-bottom:1px solid var(--bd);cursor:pointer;min-width:0}
 .cmp-sug:hover{background:var(--sf2)}
@@ -609,13 +617,13 @@ main{padding:18px 12px 40px}
 <div class="cmp2">
 <div class="cmp-pane">
 <div class="srch"><input id="cq1" placeholder="첫 번째 종목 검색" aria-label="비교 첫 번째 종목 검색"></div>
-<div class="pair cmp-src" id="cmp-src1" role="group" aria-label="가격·차트 출처"><button type="button" data-s="real" aria-pressed="true">나스닥</button><button type="button" data-s="bn" aria-pressed="false">바이낸스</button></div>
+<div class="pair cmp-src" id="cmp-src1" role="group" aria-label="가격·차트 출처"><button type="button" data-s="real" aria-pressed="true">나스닥</button><button type="button" data-s="bn" aria-pressed="false">바이낸스</button><button type="button" data-s="hl" aria-pressed="false">하이퍼리퀴드</button></div>
 <div id="cmp-list1"></div>
 <div class="cmp-chart" id="cmp-chart1" hidden></div>
 </div>
 <div class="cmp-pane">
 <div class="srch"><input id="cq2" placeholder="두 번째 종목 검색" aria-label="비교 두 번째 종목 검색"></div>
-<div class="pair cmp-src" id="cmp-src2" role="group" aria-label="가격·차트 출처"><button type="button" data-s="real" aria-pressed="true">나스닥</button><button type="button" data-s="bn" aria-pressed="false">바이낸스</button></div>
+<div class="pair cmp-src" id="cmp-src2" role="group" aria-label="가격·차트 출처"><button type="button" data-s="real" aria-pressed="true">나스닥</button><button type="button" data-s="bn" aria-pressed="false">바이낸스</button><button type="button" data-s="hl" aria-pressed="false">하이퍼리퀴드</button></div>
 <div id="cmp-list2"></div>
 <div class="cmp-chart" id="cmp-chart2" hidden></div>
 </div>
@@ -1029,9 +1037,14 @@ var fm=el("fmore"),fc=el("fmore-cnt");if(fm){var hasMore=fTotal>fShow;fm.hidden=
 arw(el("fh"),fs)}
 function fMore(){if(fShow>=fTotal)return;fShow+=10;drawF()}
 el("fmore-btn").addEventListener("click",fMore);
-if(window.IntersectionObserver){var fio=new IntersectionObserver(function(es){for(var i=0;i<es.length;i++){if(es[i].isIntersecting){var pfEl=el("pf");if(pfEl&&!pfEl.hidden&&fTotal>fShow)fMore();break}}},{rootMargin:"0px 0px 80px 0px"});var fsentEl=el("fsent");if(fsentEl)fio.observe(fsentEl)}
-el("fh").addEventListener("click",function(e){var h=e.target.closest("[data-k]");if(!h||!h.dataset.k)return;var k=h.dataset.k;if(fs.k===k){if(fs.d===-1)fs.d=1;else fs={k:null,d:-1}}else fs={k:k,d:-1};fShow=10;drawF()});
-el("fq").addEventListener("input",function(){fShow=10;drawF()});
+/* 센티넬 자동 로드는 첫 사용자 스크롤 이후에만 허용: 첫 렌더 직후 센티넬이 화면 안에 있어도
+   자동으로 더 불러오지 않아 초기 표시는 정확히 10개에서 멈춘다. '더 보기' 버튼은 항상 동작한다. */
+var fSentArmed=false;
+function fSentCheck(){var pfEl=el("pf");if(!pfEl||pfEl.hidden||!(fTotal>fShow))return;var sEl=el("fsent");if(!sEl)return;var r=sEl.getBoundingClientRect();if(r.top<=(window.innerHeight||0)+80&&r.bottom>=0)fMore()}
+window.addEventListener("scroll",function(){if(!fSentArmed){var pfEl=el("pf");if(!pfEl||pfEl.hidden)return;fSentArmed=true}if(fSentArmed)fSentCheck()},{passive:true});
+if(window.IntersectionObserver){var fio=new IntersectionObserver(function(es){if(!fSentArmed)return;for(var i=0;i<es.length;i++){if(es[i].isIntersecting){var pfEl=el("pf");if(pfEl&&!pfEl.hidden&&fTotal>fShow)fMore();break}}},{rootMargin:"0px 0px 80px 0px"});var fsentEl=el("fsent");if(fsentEl)fio.observe(fsentEl)}
+el("fh").addEventListener("click",function(e){var h=e.target.closest("[data-k]");if(!h||!h.dataset.k)return;var k=h.dataset.k;if(fs.k===k){if(fs.d===-1)fs.d=1;else fs={k:null,d:-1}}else fs={k:k,d:-1};fShow=10;fSentArmed=false;drawF()});
+el("fq").addEventListener("input",function(){fShow=10;fSentArmed=false;drawF()});
 drawF();
 /* 펀딩비 실시간 표시: 어느 거래소에서든 새 펀딩이 들어오면 상태 줄에 마지막 업데이트 시각을 찍는다.
    HL 펀딩은 가격 조회 백오프와 무관하게 전용으로 다시 불러오고, 펀딩 탭이 열려 있는 동안 10초마다,
@@ -1628,16 +1641,41 @@ mtLoadTvJs(function(ok){
 if(w._cmpTok!==tok)return;
 if(!ok){if(!w.querySelector("iframe"))cmpShowHint(idx,sym,"TradingView 차트 연결을 불러오지 못했어요. 아래 버튼으로 차트를 다시 걸어보세요.");return}
 try{
-var widget=new TradingView.widget({container_id:"cmp-tvw"+idx+"-in",symbol:sym,interval:"D",theme:(typeof tvtheme==="function"?tvtheme():"light"),style:"1",timezone:"Asia/Seoul",locale:"kr",hide_side_toolbar:true,allow_symbol_change:false,save_image:false,autosize:true});
+var widget=new TradingView.widget({container_id:"cmp-tvw"+idx+"-in",symbol:sym,interval:"D",theme:(typeof tvtheme==="function"?tvtheme():"light"),style:"1",timezone:"Asia/Seoul",locale:"kr",hide_side_toolbar:true,allow_symbol_change:false,save_image:false,autosize:true,withdateranges:true});
 if(widget&&typeof widget.onChartReady==="function")widget.onChartReady(done);
 }catch(e){setTimeout(function(){if(!ready&&w._cmpTok===tok&&!w.querySelector("iframe"))cmpShowHint(idx,sym,"차트 연결 중 문제가 생겼어요. 아래 버튼으로 차트를 다시 걸어보세요.")},3000)}})}
+function cmpLoadHistTv(idx,tryN){
+var can=CMPSEL[idx];if(!can)return;
+var w=el("cmp-htvw"+idx);if(!w)return;
+var r=REALP[can];
+if(r===null){w.innerHTML='<div class="tvmsg"><b>과거 차트를 이을 수 없어요</b><span>이 종목은 나스닥/NYSE 실제 주식 차트가 없어 상장 전 구간을 이을 수 없습니다.</span></div>';return}
+if(r===undefined){if((tryN||0)<6){if(REALPEND[can]===undefined&&!REALPEND[can])fetchReal([can]);w.innerHTML='<div class="tvmsg"><span>과거 차트 불러오는 중…</span></div>';var tokH=String(Date.now())+"h"+idx;w._cmpTokH=tokH;setTimeout(function(){if(w._cmpTokH===tokH&&el("cmp-htvw"+idx)===w)cmpLoadHistTv(idx,(tryN||0)+1)},1200);return}}
+var sym=cmpTvSym(can);
+var tok=String(Date.now())+"ch"+idx;w._cmpTokH=tok;
+w.innerHTML='<div class="tvmsg"><span>과거 차트 불러오는 중…</span></div><div id="cmp-htvw'+idx+'-in" style="width:100%;height:100%"></div>';
+var ready=false;
+var doneH=function(){if(w._cmpTokH!==tok||ready)return;ready=true;if(w._cmpPollH){clearInterval(w._cmpPollH);w._cmpPollH=null}var m=w.querySelector(".tvmsg");if(m)m.hidden=true};
+if(w._cmpPollH){clearInterval(w._cmpPollH);w._cmpPollH=null}
+w._cmpPollH=setInterval(function(){if(w._cmpTokH!==tok){clearInterval(w._cmpPollH);w._cmpPollH=null;return}var fr=w.querySelector("iframe");if(fr&&fr.clientHeight>50)doneH()},500);
+setTimeout(function(){if(ready||w._cmpTokH!==tok)return;var fr=w.querySelector("iframe");if(fr&&fr.clientHeight>50){doneH();return}if(!fr)w.innerHTML='<div class="tvmsg"><b>과거 차트를 불러오지 못했어요</b><span>연결 문제일 수 있어요.</span><a class="tvlink" href="https://www.tradingview.com/chart/?symbol='+encodeURIComponent(sym)+'" target="_blank" rel="noopener">TradingView에서 열기</a><button type="button" class="tvretry">다시 시도</button></div>';var b=w.querySelector(".tvretry");if(b)b.addEventListener("click",function(){cmpLoadHistTv(idx,0)})},15000);
+if(typeof mtLoadTvJs!=="function")return;
+mtLoadTvJs(function(ok){
+if(w._cmpTokH!==tok||!ok)return;
+try{
+var widget=new TradingView.widget({container_id:"cmp-htvw"+idx+"-in",symbol:sym,interval:"D",theme:(typeof tvtheme==="function"?tvtheme():"light"),style:"1",timezone:"Asia/Seoul",locale:"kr",hide_side_toolbar:true,allow_symbol_change:false,save_image:false,autosize:true,withdateranges:true});
+if(widget&&typeof widget.onChartReady==="function")widget.onChartReady(doneH);
+}catch(e){}})}
 function cmpRenderChart(idx){
 var can=CMPSEL[idx],box=el("cmp-chart"+idx);if(!box)return;
 if(!can){box.hidden=true;box.innerHTML="";CMPST[idx]=null;return}
 box.hidden=false;
-box.innerHTML='<div class="tvw cmp-tvw" id="cmp-tvw'+idx+'"></div>';
+var src=CMPSRC[idx]||"real";
+var hist=!CMPEX[can]&&(src==="bn"||src==="hl");
+var srcLab=src==="bn"?"바이낸스":"하이퍼리퀴드";
+box.innerHTML='<div class="tvw cmp-tvw" id="cmp-tvw'+idx+'"></div>'+(hist?'<div class="cmp-hist"><div class="cmp-hist-hd"><b>과거 차트 이어보기</b><span>'+can+' · 나스닥/NYSE 실제 주식 · 전체 기간</span></div><p class="cmp-hist-note">'+srcLab+' 주식 선물은 상장한 지 얼마 안 돼 그 이전 차트가 없습니다. 선물 가격은 실제 주식을 따라가므로, 상장 전 구간은 아래 실제 주식 차트로 이어서 보세요. 차트 아래 기간 버튼에서 전체·5년·1년을 고를 수 있습니다.</p><div class="tvw cmp-tvw cmp-hist-tvw" id="cmp-htvw'+idx+'"></div></div>':"");
 cmpSyncSrc(idx);
-cmpLoadTv(idx)}
+cmpLoadTv(idx);
+if(hist)cmpLoadHistTv(idx,0)}
 function cmpSyncChart(idx){
 var can=CMPSEL[idx];if(!can)return;
 var pe=el("cmp-chart-price"+idx);if(pe)pe.innerHTML=cmpPriceHtml(can);
@@ -1649,10 +1687,10 @@ else{CMPSEL[idx]=can;if(REALP[can]===undefined)fetchReal([can]);cmpRenderChart(i
 cmpDrawPane(idx)}
 function cmpCloseChart(idx){CMPSEL[idx]=null;cmpRenderChart(idx);cmpDrawPane(idx)}
 var CMPSRC={1:"real",2:"real"};
-var SRCNM={real:"나스닥/NYSE",bn:"Binance"};
+var SRCNM={real:"나스닥/NYSE",bn:"Binance",hl:"Hyperliquid"};
 function srcPrice(can,src){
 if(CMPEX[can]){var e=EXP[can];if(e===undefined)return undefined;if(!e||!(e.p>0))return null;return{p:e.p,c:e.c}}
-if(src==="bn"){var r2=xrow("bn",fromCan("bn",can));if(!r2||!(r2[1]>0))return null;return{p:r2[1],c:r2[2]}}
+if(src==="bn"||src==="hl"){var r2=xrow(src,fromCan(src,can));if(!r2||!(r2[1]>0))return null;return{p:r2[1],c:r2[2]}}
 var rr=REALP[can];if(rr===undefined)return undefined;if(!rr||!(rr.p>0))return null;return{p:rr.p,c:rr.c}}
 function priceHtml(idx,can){
 if(CMPEX[can]){
@@ -1670,6 +1708,7 @@ function cmpChartSym(idx,can){
 if(CMPEX[can])return CMPEX[can].tv;
 var s=CMPSRC[idx]||"real";
 if(s==="bn")return "BINANCE:"+can+"USDT.P";
+if(s==="hl")return "HYPERLIQUID:"+can+"USD.P";
 return cmpTvSym(can)}
 function cmpSyncSrc(idx){
 var w=el("cmp-src"+idx);if(w)w.querySelectorAll("button").forEach(function(b){b.setAttribute("aria-pressed",String(b.dataset.s===(CMPSRC[idx]||"real")))})}
@@ -1697,7 +1736,7 @@ if(qRaw&&matched.length>3)html+='<p class="note">결과가 많아 시총이 큰 
 listEl.innerHTML=html}
 function cmpDraw(){cmpDrawPane(1);cmpDrawPane(2)}
 try{window.__cmpRefresh=cmpDraw}catch(e){}
-[1,2].forEach(function(idx){var sw=el("cmp-src"+idx);if(sw)sw.addEventListener("click",function(e){var b=e.target.closest?e.target.closest("[data-s]"):null;if(!b)return;CMPSRC[idx]=b.dataset.s;cmpSyncSrc(idx);cmpDrawPane(idx);if(CMPSEL[idx])cmpLoadTv(idx)})});
+[1,2].forEach(function(idx){var sw=el("cmp-src"+idx);if(sw)sw.addEventListener("click",function(e){var b=e.target.closest?e.target.closest("[data-s]"):null;if(!b)return;CMPSRC[idx]=b.dataset.s;cmpSyncSrc(idx);cmpDrawPane(idx);if(CMPSEL[idx])cmpRenderChart(idx)})});
 [1,2].forEach(function(idx){var q=el("cq"+idx);if(!q)return;
 q.addEventListener("input",function(){if(CMPSEL[idx]){CMPSEL[idx]=null;cmpRenderChart(idx)}cmpDrawPane(idx)});
 q.addEventListener("focus",function(){CMPFOC[idx]=true;cmpDrawPane(idx)});
