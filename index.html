@@ -238,9 +238,6 @@ tr.grp td{background:var(--sf2);color:var(--mut);font-weight:700;font-size:12px;
 .lgmsg[hidden]{display:none}
 .lgnote{color:var(--mut);font-size:11.5px;text-align:center;margin:10px 0 0}
 .gbtn[hidden]{display:none}
-#lg-gis{display:flex;justify-content:center;width:100%;min-height:46px}
-#lg-gis[hidden]{display:none}
-#lg-gis>div{max-width:100%}
 .opbdg{display:inline-flex;align-items:center;flex:none;padding:2px 8px;border-radius:999px;background:var(--ac);color:var(--acx);font-size:11px;font-weight:700;line-height:1.5;letter-spacing:.01em;vertical-align:2px}
 .opbdg[hidden]{display:none}
 .who .opbdg{margin-left:1px}
@@ -468,6 +465,7 @@ main{padding:18px 12px 40px}
 .chat-ft[hidden]{display:none}
 .chat-gbtn{width:100%;min-height:42px;border:0;border-radius:999px;background:var(--ac);color:var(--acx);font:inherit;font-size:13.5px;font-weight:700;cursor:pointer}
 .chat-gbtn[hidden]{display:none}
+.chat-hint{margin:0 2px 8px;font-size:12.5px;color:var(--mut);line-height:1.5}
 .chat-form{display:flex;gap:8px}
 .chat-form[hidden]{display:none}
 .chat-form input{flex:1;min-width:0;min-height:42px;border-radius:999px;padding:9px 14px;font-size:13.5px;font-weight:500}
@@ -497,7 +495,6 @@ main{padding:18px 12px 40px}
 .legalbox-bd li{margin-bottom:4px}
 @media(max-width:520px){.legalov{padding:0;align-items:flex-end}.legalbox{max-width:none;max-height:92dvh;border-radius:16px 16px 0 0;border-bottom:0}}
 </style>
-<script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js"></script>
@@ -629,8 +626,8 @@ main{padding:18px 12px 40px}
 <div class="chat-msgs" id="chat-msgs" hidden></div>
 <p class="chat-state" id="chat-state">채팅 준비 중이에요</p>
 <div class="chat-ft" id="chat-ft" hidden>
-<button type="button" class="chat-gbtn" id="chat-glogin">구글 로그인하고 글쓰기</button>
-<form class="chat-form" id="chat-form" hidden><input id="chat-input" type="text" maxlength="500" placeholder="메시지를 입력하세요" aria-label="채팅 메시지 입력" autocomplete="off"><button type="submit" class="chat-send">전송</button></form>
+<p class="chat-hint" id="chat-hint">로그인 상태를 확인하고 있어요. 잠시만 기다려 주세요.</p>
+<form class="chat-form" id="chat-form"><input id="chat-input" type="text" maxlength="500" placeholder="메시지를 입력하세요" aria-label="채팅 메시지 입력" autocomplete="off"><button type="submit" class="chat-send">전송</button></form>
 <p class="chat-err" id="chat-err" role="alert" hidden></p>
 </div>
 </div>
@@ -640,9 +637,8 @@ main{padding:18px 12px 40px}
 <h2 id="lg-t">로그인</h2>
 <form id="lg-form" novalidate>
 <button type="button" class="gbtn" id="lg-g"><svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"/><path fill="#FF3D00" d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 16.318 4 9.656 8.337 6.306 14.691z"/><path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238C29.211 35.091 26.715 36 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z"/><path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303c-.792 2.237-2.231 4.166-4.087 5.571.001-.001.002-.001.003-.002l6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z"/></svg>Google로 계속하기</button>
-<div id="lg-gis" hidden></div>
 <p class="lgmsg" id="lg-msg" role="status" hidden></p>
-<p class="lgnote">로그인 상태는 이 기기에만 저장됩니다.</p>
+<p class="lgnote">로그인하면 채팅도 바로 쓸 수 있어요. 로그인 상태는 이 기기에만 저장됩니다.</p>
 </form></div></div>
 <div class="lgov" id="pf-ov" hidden><div class="lgbox" role="dialog" aria-modal="true" aria-labelledby="pf-t">
 <button type="button" class="lgx" id="pf-x" aria-label="닫기">×</button>
@@ -708,10 +704,8 @@ main{padding:18px 12px 40px}
 </div></div></div>
 <script>
 /* ===== 설정: 아래 값들을 채우면 켜집니다 =====
-   GOOGLE_CLIENT_ID: Google Cloud에서 만든 OAuth 클라이언트 ID (비어 있으면 구글 버튼은 "준비 중" 안내만 표시)
    OPERATOR_EMAIL: 운영자 구글 이메일 (로그인 이메일과 일치하면 "운영자" 배지 표시, 비어 있으면 배지 없음)
-   FIREBASE_CONFIG: Firebase 프로젝트의 firebaseConfig 객체를 그대로 붙여 넣으면 자체 채팅이 켜집니다 (비어 있으면 채팅 패널에 "채팅 준비 중" 안내만 표시) */
-var GOOGLE_CLIENT_ID="355915495673-uf04palh8j773ercumn4etivl8dugv5n.apps.googleusercontent.com";
+   FIREBASE_CONFIG: Firebase 프로젝트의 firebaseConfig 객체. 사이트 로그인과 자체 채팅이 이 인증을 함께 씁니다 — 한 번 로그인하면 프로필과 채팅이 같이 켜집니다 (비어 있으면 로그인·채팅이 동작하지 않습니다) */
 var OPERATOR_EMAIL="kimsumin0327@gmail.com";
 var FIREBASE_CONFIG={apiKey:"AIzaSyCK_8KrdL-JkTn7UmFz_xsDW4rTTX8Hcj8",authDomain:"jabjunet.firebaseapp.com",databaseURL:"https://jabjunet-default-rtdb.firebaseio.com",projectId:"jabjunet",storageBucket:"jabjunet.firebasestorage.app",messagingSenderId:"518844585539",appId:"1:518844585539:web:8ab1132490e672dd8366f6"};
 var D=[["MRNA",202.71,0.54,28.85],["SNDK",1241.1,-0.01,21.3],["SKHX",951.8,0.29,18.56],["MU",886.64,0.19,17.13],["SPCX",147.35,-0.22,15.45],["MSTR",145.31,-0.91,10.14],["NVDA",211.95,0.31,9.5],["SOXL",84.677,0.83,8.9],["CRCL",85.618,-0.12,8.49],["DRAM",47.306,-0.04,8.49],["SKHY",137.89,0.47,6.24],["GOOGL",320.35,-0.4,6.12],["INTC",87.025,0.22,4.63],["META",641.07,-0.06,4.42],["AAPL",346.6,-0.23,4.04],["CBRS",112.34,1.4,3.44],["EWY",151.25,-0.17,3.28],["EWZ",44.451,0.6,3.27],["BB",9.0262,1.68,3.21],["SMSN",161.63,-0.25,3.03],["NBIS",158.12,-0.5,2.81],["AMD",520.55,0.37,2.76],["COIN",164.91,0.1,2.7],["HOOD",95.357,0.33,2.2],["TSLA",371.31,-0.28,2.14],["CRWV",54.477,0.11,2.14],["BE",190.32,-2.05,2.13],["MRVL",229.3,0.08,1.95],["AMZN",248.25,-0.2,1.81],["UNITREE",95.198,0.59,1.75],["KORU",10.562,-0.45,1.62],["MSFT",523.24,-0.17,1.51],["CXMT",6.4896,0.48,1.44],["SNXX",8.1827,-0.09,0.78],["ORCL",125.78,-0.44,0.74],["BABA",99.477,-0.39,0.71],["PLTR",196.52,-0.45,0.7],["LITE",760.08,0.06,0.69],["PURRDAT",8.8045,-0.91,0.67],["JIO",13.083,-0.89,0.66],["NET",324.54,-0.73,0.57],["KIOXIA",81.211,0.56,0.43],["BOT",22.703,-1.12,0.41],["LLY",1271.4,-0.38,0.41],["IREN",24.817,-1.09,0.37],["GME",24.805,0.04,0.37],["IBM",252.31,-0.36,0.36],["SHEIN",4.775,0.56,0.36],["ARM",211.05,0.24,0.36],["AAOI",67.422,0.04,0.35],["CRWD",255.38,-0.67,0.33],["AVGO",322.32,-0.01,0.38],["NFLX",65.855,0.1,0.3],["EBAY",120.1,-0.83,0.3],["ASML",1572.8,-0.08,0.31],["ZHIPU",63.058,-0.16,0.27],["STRC",99.039,-0.08,0.27],["AMAT",376.67,-0.22,0.26],["RKLB",52.628,0,0.24],["DELL",456.22,0.03,0.24],["WDC",344.34,0.39,0.22],["TSM",418.54,0.04,0.21],["QCOM",175.61,0.01,0.19],["SMH",527.2,-0.11,0.19],["HYUNDAI",219.7,-0.27,0.17],["SHAZ",22.828,-0.44,0.17],["QNT",36.573,0.1,0.14],["HIMS",27.72,-0.22,0.14],["XLE",69.764,0.24,0.11],["USAR",9.2967,-0.37,0.11],["SOFTBANK",27.64,0.84,0.11],["MINIMAX",23.624,0.34,0.1],["URNM",41.646,-0.37,0.07],["TLT",81.403,0.18,0.06],["NCLD",15.424,-1.13,0.04],["GIGADEV",43.287,-0.12,0.04],["BMNR",22.434,-0.6,0.03],["GLW",123.79,0.11,0.02],["EWT",104.42,0.02,0.02],["EWJ",94.121,0.02,0.02],["COST",1001.8,-0.05,0.02],["NOW",158.58,-0.41,0.02],["NOK",8.1666,-0.01,0.02],["BX",118.32,0.28,0.02],["GEV",812.03,-0.23,0.02],["CVX",233.39,0.03,0.02],["UMC",18.793,-1.41,0.01],["CAMBRICON",138.43,-0.89,0.01],["DKNG",20.852,0.06,0.01],["XBI",149.36,-0.27,0.01],["ZM",95.699,-0.42,0.01],["LYTE",18.153,-0.58,0.01],["RDDT",144.53,-0.29,0.01],["RIVN",11.821,-0.2,0],["LRCX",229.51,0.26,0],["TWST",138.57,0.34,0],["OURA",48.693,0.23,0],["MAGS",70.042,-0.09,0],["KSTR",19.368,0.1,0],["BIRD",2.307,0.43,0]];
@@ -1280,12 +1274,37 @@ function setAv(t,im,nick,img){if(img){im.src=img;im.hidden=false;t.hidden=true}e
 function isOp(){var oe=typeof OPERATOR_EMAIL!=="undefined"?String(OPERATOR_EMAIL||"").trim().toLowerCase():"";if(!oe)return false;var u=saved().trim().toLowerCase();if(u&&u===oe)return true;var pe=String(prof().email||"").trim().toLowerCase();return !!pe&&pe===oe}
 function syncOp(){var op=isOp();var a=el("lg-op");if(a)a.hidden=!op;var b=el("pf-op");if(b)b.hidden=!op}
 function show(){var u=saved();openB.hidden=!!u;who.hidden=!u;if(u){var p=prof();var nick=p.nick||u;idT.textContent=nick;setAv(el("lg-pav-t"),el("lg-pav-img"),nick,p.img||"")}syncOp()}
-function open(){el("lg-msg").hidden=true;setupGis();ov.hidden=false}
-el("lg-g").addEventListener("click",function(){var m=el("lg-msg");m.textContent="구글 로그인은 준비 중입니다.";m.hidden=false});
-var gisInit=false,gisTries=0;
-function jwtPayload(tok){try{var ps=String(tok||"").split(".");if(ps.length<2)return null;var b=ps[1].replace(/-/g,"+").replace(/_/g,"/");while(b.length%4)b+="=";var bin=atob(b),txt;if(window.TextDecoder){var bytes=new Uint8Array(bin.length);for(var i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);txt=new TextDecoder("utf-8").decode(bytes)}else{txt=decodeURIComponent(bin.split("").map(function(ch){return "%"+("00"+ch.charCodeAt(0).toString(16)).slice(-2)}).join(""))}return JSON.parse(txt)}catch(e){return null}}
-function onGoogle(resp){if(!resp||!resp.credential)return;var pl=jwtPayload(resp.credential);if(!pl)return;var email=String(pl.email||"").trim();if(!email)return;var nm=String(pl.name||"").trim()||email;var pic=String(pl.picture||"").trim();try{localStorage.setItem(KEY,email)}catch(e){}var p=prof();p.nick=nm;if(pic)p.img=pic;p.email=email;p.done=1;saveProf(p);close();show()}
-function setupGis(){var cid=typeof GOOGLE_CLIENT_ID!=="undefined"?String(GOOGLE_CLIENT_ID||"").trim():"";if(!cid||gisInit)return;if(!window.google||!google.accounts||!google.accounts.id){if(++gisTries<=40)setTimeout(setupGis,300);return}gisInit=true;try{google.accounts.id.initialize({client_id:cid,callback:onGoogle});var cont=el("lg-gis"),gb=el("lg-g");if(cont){cont.hidden=false;var w=cont.clientWidth||320;if(w>400)w=400;google.accounts.id.renderButton(cont,{theme:"outline",size:"large",text:"continue_with",shape:"rectangular",logo_alignment:"left",width:w})}if(gb)gb.hidden=true}catch(e){gisInit=false}}
+function open(){el("lg-msg").hidden=true;ov.hidden=false}
+el("lg-g").addEventListener("click",function(){var m=el("lg-msg");if(typeof window.__hlkrxFbSignIn==="function"){m.hidden=true;window.__hlkrxFbSignIn(false)}else{m.textContent="로그인을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.";m.hidden=false}});
+/* 사이트 로그인은 채팅과 같은 Firebase 구글 인증을 쓴다: 한 번 로그인하면 프로필과 채팅이 함께 켜진다.
+   Firebase 로그인 상태가 바뀌면 이 기기에 저장된 로그인 표시(hlkrx_uid·프로필)도 거기에 맞춰 동기화한다 */
+var fbSyncStarted=false;
+function fbCfgReady(){try{var c=(typeof FIREBASE_CONFIG!=="undefined")?FIREBASE_CONFIG:null;return !!(c&&typeof c.apiKey==="string"&&c.apiKey.trim()&&typeof c.databaseURL==="string"&&c.databaseURL.trim())}catch(e){return false}}
+function fbSync(){
+if(fbSyncStarted)return;fbSyncStarted=true;
+if(!fbCfgReady())return;
+if(typeof firebase==="undefined"||!firebase.initializeApp){fbSyncStarted=false;return}
+try{if(!firebase.apps||!firebase.apps.length)firebase.initializeApp(FIREBASE_CONFIG)}catch(e){}
+try{
+firebase.auth().onAuthStateChanged(function(u){
+if(u){
+var email=String(u.email||"").trim();
+if(email){
+try{localStorage.setItem(KEY,email)}catch(e){}
+var p=prof();
+if(!String(p.nick||"").trim()&&u.displayName)p.nick=String(u.displayName);
+if(!p.img&&u.photoURL)p.img=String(u.photoURL);
+p.email=email;p.done=1;saveProf(p);
+}
+close();
+}else{
+try{localStorage.removeItem(KEY)}catch(e){}
+var p2=prof();if(p2.email){delete p2.email;saveProf(p2)}
+}
+show();
+});
+}catch(e){}
+}
 function close(){ov.hidden=true}
 openB.addEventListener("click",open);
 el("lg-x").addEventListener("click",close);
@@ -1304,29 +1323,38 @@ var rd=new FileReader();rd.onload=function(){var img=new Image();img.onload=func
 el("pf-save").addEventListener("click",function(){var nick=pnick.value.trim();if(!nick){perr.textContent="닉네임을 입력해 주세요.";perr.hidden=false;pnick.focus();return}
 var p=prof();p.nick=nick;p.img=tmpImg;p.done=1;if(!saveProf(p)){perr.textContent="저장에 실패했어요. 사진 없이 다시 시도해 보세요.";perr.hidden=false;return}
 pfFirst=false;pov.hidden=true;show()});
-el("pf-out").addEventListener("click",function(){try{if(window.google&&google.accounts&&google.accounts.id&&google.accounts.id.disableAutoSelect)google.accounts.id.disableAutoSelect()}catch(e){}try{localStorage.removeItem(KEY)}catch(e){}pfFirst=false;pov.hidden=true;show()});
+el("pf-out").addEventListener("click",function(){try{if(typeof firebase!=="undefined"&&firebase.auth)firebase.auth().signOut()}catch(e){}try{localStorage.removeItem(KEY)}catch(e){}pfFirst=false;pov.hidden=true;show()});
 who.addEventListener("click",function(){pfOpen(false)});
 document.addEventListener("keydown",function(e){if(e.key!=="Escape")return;if(!pov.hidden)pfClose();else if(!ov.hidden)close()});
 show();
-setupGis();
-window.addEventListener("load",setupGis);
+fbSync();
+window.addEventListener("load",fbSync);
 })();
 </script>
 <script>
 (function(){
 var btn=document.getElementById("chat-open"),panel=document.getElementById("chat-panel"),
 msgs=document.getElementById("chat-msgs"),state=document.getElementById("chat-state"),
-ft=document.getElementById("chat-ft"),glogin=document.getElementById("chat-glogin"),
+ft=document.getElementById("chat-ft"),hint=document.getElementById("chat-hint"),
 form=document.getElementById("chat-form"),input=document.getElementById("chat-input"),
 err=document.getElementById("chat-err");
-var started=false,fbUser=null,msgRef=null,lastSnap=null,firstRender=true;
+var started=false,authStarted=false,fbUser=null,msgRef=null,lastSnap=null,firstRender=true;
+var authKnown=false;
 function cfgReady(){try{var c=(typeof FIREBASE_CONFIG!=="undefined")?FIREBASE_CONFIG:null;return !!(c&&typeof c.apiKey==="string"&&c.apiKey.trim()&&typeof c.databaseURL==="string"&&c.databaseURL.trim())}catch(e){return false}}
 function opEmail(){return (typeof OPERATOR_EMAIL!=="undefined"?String(OPERATOR_EMAIL||""):"").trim().toLowerCase()}
 function isOpEmail(em){var oe=opEmail();return !!oe&&String(em||"").trim().toLowerCase()===oe}
 function chatProf(){try{var p=JSON.parse(localStorage.getItem("hlkrx_prof")||"{}");return p&&typeof p==="object"?p:{}}catch(e){return{}}}
 function initial(nm){var a=Array.from(String(nm||""));return a.length?a[0]:"?"}
 function fmtTime(ts){if(!ts||typeof ts!=="number")return "";var d=new Date(ts),now=new Date();var hm=d.toLocaleTimeString("ko-KR",{hour:"numeric",minute:"2-digit"});return d.toDateString()===now.toDateString()?hm:(d.getMonth()+1)+"/"+d.getDate()+" "+hm}
-function syncFt(){var logged=!!fbUser;glogin.hidden=logged;form.hidden=!logged;if(logged)err.hidden=true}
+function syncFt(){var logged=!!fbUser;form.hidden=false;
+if(hint){
+if(logged){var p=chatProf();var nm=String(p.nick||"").trim()||fbUser.displayName||"로그인";hint.textContent=nm+"님으로 로그인돼 있어요. 아래 칸에 메시지를 쓰고 전송을 누르면 바로 올라가요."}
+else if(!authKnown)hint.textContent="로그인 상태를 확인하고 있어요. 잠시만 기다려 주세요.";
+else hint.textContent="글을 쓰려면 구글 로그인이 필요해요. 오른쪽 위 로그인 한 번이면 채팅까지 바로 켜져요. 로그인 전에는 메시지를 읽을 수만 있어요.";
+}
+if(logged){err.hidden=true;restoreDraft()}}
+function saveDraft(){try{if(input.value)sessionStorage.setItem("hlkrx_chat_draft",input.value)}catch(e){}}
+function restoreDraft(){try{var d=sessionStorage.getItem("hlkrx_chat_draft");if(d&&!input.value){input.value=d}if(d)sessionStorage.removeItem("hlkrx_chat_draft")}catch(e){}}
 function msgEl(key,m){
 var row=document.createElement("div");row.className="cmsg";
 var av=document.createElement("div");av.className="cav";av.setAttribute("aria-hidden","true");
@@ -1354,16 +1382,53 @@ if(count===0){msgs.hidden=true;state.textContent="아직 메시지가 없어요.
 else{state.hidden=true;msgs.hidden=false;if(firstRender||nearBottom)msgs.scrollTop=msgs.scrollHeight}
 firstRender=false;
 }
-function initChat(){
-if(started)return;started=true;
-if(!cfgReady()){state.textContent="채팅 준비 중이에요";state.hidden=false;msgs.hidden=true;ft.hidden=true;return}
-if(typeof firebase==="undefined"||!firebase.initializeApp){started=false;state.textContent="채팅을 불러오지 못했어요. 패널을 닫았다가 다시 열어 주세요.";state.hidden=false;return}
-try{firebase.initializeApp(FIREBASE_CONFIG)}catch(e){}
-state.textContent="채팅을 불러오는 중…";state.hidden=false;
-ft.hidden=false;syncFt();
+/* 사이트 로그인과 채팅이 함께 쓰는 구글 로그인: 인증이 Firebase 하나로 통일돼 있어, 여기서 로그인하면 오른쪽 위 프로필까지 한 번에 켜지고 채팅도 바로 쓸 수 있다.
+   팝업이 막히는 환경(앱 내 브라우저 등)에서는 페이지 이동 방식으로 자동 전환한다 */
+function startFbSignIn(fromChat){
+initAuth();
+err.hidden=true;
+if(typeof firebase==="undefined"||!firebase.auth){err.textContent="채팅을 불러오지 못했어요. 패널을 닫았다가 다시 열어 주세요.";err.hidden=false;return}
+var auth=firebase.auth();
+var prov=new firebase.auth.GoogleAuthProvider();
+function goRedirect(){
+if(fromChat){saveDraft();try{sessionStorage.setItem("hlkrx_chat_redirect","1")}catch(e){}}
+auth.signInWithRedirect(prov).catch(function(e){try{sessionStorage.removeItem("hlkrx_chat_redirect")}catch(x){}chatLoginFail(e)});
+}
+function goPopup(){
+auth.signInWithPopup(prov).catch(function(e){
+var code=e&&e.code?String(e.code):"";
+if(code==="auth/popup-closed-by-user"||code==="auth/cancelled-popup-request"){if(fromChat)chatLoginFail(e);return}
+try{sessionStorage.setItem("hlkrx_chat_popupfail","1")}catch(x){}
+goRedirect();
+});
+}
 try{
-firebase.auth().onAuthStateChanged(function(u){fbUser=u||null;syncFt();render()});
-if(firebase.auth().getRedirectResult){firebase.auth().getRedirectResult().then(function(res){if(res&&res.user){fbUser=res.user;syncFt();render()}}).catch(function(e){chatLoginFail(e)})}
+var popupFailBefore=false;try{popupFailBefore=sessionStorage.getItem("hlkrx_chat_popupfail")==="1"}catch(e){}
+var start=function(){if(inAppBrowser()||popupFailBefore)goRedirect();else goPopup()};
+if(auth.setPersistence&&firebase.auth.Auth&&firebase.auth.Auth.Persistence){auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).then(start,start)}else start();
+}catch(e){chatLoginFail(e)}
+}
+window.__hlkrxFbSignIn=function(fromChat){startFbSignIn(!!fromChat)};
+/* 인증만 먼저 초기화: 페이지가 열리면 Firebase 로그인 상태를 복원해 둔다 (사이트 로그인과 채팅이 같은 인증을 공유한다) */
+function initAuth(){
+if(authStarted)return;authStarted=true;
+if(!cfgReady())return;
+if(typeof firebase==="undefined"||!firebase.initializeApp){authStarted=false;return}
+try{if(!firebase.apps||!firebase.apps.length)firebase.initializeApp(FIREBASE_CONFIG)}catch(e){}
+try{
+firebase.auth().onAuthStateChanged(function(u){fbUser=u||null;authKnown=true;syncFt();render()});
+if(firebase.auth().getRedirectResult){firebase.auth().getRedirectResult().then(function(res){if(res&&res.user){fbUser=res.user;authKnown=true;syncFt();render()}}).catch(function(e){if(window.__hlkrxRedirectReturn)chatLoginFail(e)})}
+}catch(e){}
+}
+function initChat(){
+initAuth();
+/* 입력칸은 어떤 경우에도 먼저 보여 준다: 로그인 전이어도 칸이 보여야 글을 쓸 수 있다 */
+ft.hidden=false;syncFt();restoreDraft();
+if(started)return;started=true;
+if(!cfgReady()){state.textContent="채팅 준비 중이에요";state.hidden=false;msgs.hidden=true;return}
+if(typeof firebase==="undefined"||!firebase.initializeApp){started=false;state.textContent="채팅을 불러오지 못했어요. 패널을 닫았다가 다시 열어 주세요.";state.hidden=false;return}
+state.textContent="채팅을 불러오는 중…";state.hidden=false;
+try{
 msgRef=firebase.database().ref("messages");
 msgRef.limitToLast(100).on("value",function(snap){lastSnap=snap;render()},function(){state.textContent="채팅을 불러오지 못했어요.";state.hidden=false;msgs.hidden=true});
 }catch(e){state.textContent="채팅을 불러오지 못했어요.";state.hidden=false}
@@ -1376,38 +1441,16 @@ else{err.textContent="로그인에 실패했어요. 앱 안 브라우저(카카�
 err.hidden=false;
 }
 function inAppBrowser(){var ua=navigator.userAgent||"";return /KAKAOTALK|FBAN|FBAV|FB_IAB|Instagram|Line\/|NAVER\(inapp|DaumApps|; wv\)/i.test(ua)}
-glogin.addEventListener("click",function(){
-err.hidden=true;
-if(typeof firebase==="undefined"||!firebase.auth){err.textContent="채팅을 불러오지 못했어요. 패널을 닫았다가 다시 열어 주세요.";err.hidden=false;return}
-var auth=firebase.auth();
-var prov=new firebase.auth.GoogleAuthProvider();
-function goRedirect(){
-try{sessionStorage.setItem("hlkrx_chat_redirect","1")}catch(e){}
-auth.signInWithRedirect(prov).catch(function(e){try{sessionStorage.removeItem("hlkrx_chat_redirect")}catch(x){}chatLoginFail(e)});
-}
-function goPopup(){
-auth.signInWithPopup(prov).catch(function(e){
-var code=e&&e.code?String(e.code):"";
-if(code==="auth/popup-closed-by-user"||code==="auth/cancelled-popup-request"){chatLoginFail(e);return}
-/* 팝업이 막히는 환경(앱 내 브라우저·모바일 웹뷰 등)에서는 페이지 이동 방식으로 자동 전환 */
-try{sessionStorage.setItem("hlkrx_chat_popupfail","1")}catch(x){}
-goRedirect();
-});
-}
-try{
-var popupFailBefore=false;try{popupFailBefore=sessionStorage.getItem("hlkrx_chat_popupfail")==="1"}catch(e){}
-var start=function(){if(inAppBrowser()||popupFailBefore)goRedirect();else goPopup()};
-if(auth.setPersistence&&firebase.auth.Auth&&firebase.auth.Auth.Persistence){auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).then(start,start)}else start();
-}catch(e){chatLoginFail(e)}
-});
 form.addEventListener("submit",function(e){
 e.preventDefault();
-if(!fbUser||!msgRef)return;
+if(!fbUser){saveDraft();startFbSignIn(true);return}
+if(!msgRef)return;
 var t=input.value.trim();if(!t)return;
 if(t.length>500)t=t.slice(0,500);
 var profNow=chatProf();var profNick=String(profNow.nick||"").trim();var profImg=String(profNow.img||"").trim();
 var pushRef=msgRef.push({name:profNick||fbUser.displayName||"익명",photo:profImg||fbUser.photoURL||"",text:t,ts:firebase.database.ServerValue.TIMESTAMP,uid:fbUser.uid||"",op:isOpEmail(fbUser.email)});
 if(pushRef&&typeof pushRef.catch==="function")pushRef.catch(function(){err.textContent="전송에 실패했어요. 다시 시도해 주세요.";err.hidden=false});
+try{sessionStorage.removeItem("hlkrx_chat_draft")}catch(e){}
 input.value="";input.focus();
 });
 function open(){panel.hidden=false;btn.setAttribute("aria-expanded","true");initChat();if(lastSnap)render()}
@@ -1416,8 +1459,10 @@ window.__closeChat=close;
 btn.addEventListener("click",function(){if(!panel.hidden){close();return}open()});
 document.getElementById("chat-x").addEventListener("click",close);
 document.addEventListener("keydown",function(e){if(e.key==="Escape"&&!panel.hidden)close()});
+/* 페이지가 열리면 Firebase 로그인 상태를 미리 복원해 둔다 (채팅 패널을 열기 전에도 로그인 유지) */
+initAuth();
 /* 구글 로그인 리다이렉트에서 돌아온 경우 채팅 패널을 자동으로 다시 열어 로그인 상태를 이어 보여준다 */
-try{if(sessionStorage.getItem("hlkrx_chat_redirect")==="1"){sessionStorage.removeItem("hlkrx_chat_redirect");open()}}catch(e){}
+try{if(sessionStorage.getItem("hlkrx_chat_redirect")==="1"){sessionStorage.removeItem("hlkrx_chat_redirect");window.__hlkrxRedirectReturn=true;open()}}catch(e){}
 })();
 </script>
 <script>
