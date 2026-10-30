@@ -1363,16 +1363,42 @@ state.textContent="채팅을 불러오는 중…";state.hidden=false;
 ft.hidden=false;syncFt();
 try{
 firebase.auth().onAuthStateChanged(function(u){fbUser=u||null;syncFt();render()});
+if(firebase.auth().getRedirectResult){firebase.auth().getRedirectResult().then(function(res){if(res&&res.user){fbUser=res.user;syncFt();render()}}).catch(function(e){chatLoginFail(e)})}
 msgRef=firebase.database().ref("messages");
 msgRef.limitToLast(100).on("value",function(snap){lastSnap=snap;render()},function(){state.textContent="채팅을 불러오지 못했어요.";state.hidden=false;msgs.hidden=true});
 }catch(e){state.textContent="채팅을 불러오지 못했어요.";state.hidden=false}
 }
+function chatLoginFail(e){
+var code=e&&e.code?String(e.code):"";
+if(code==="auth/popup-closed-by-user"||code==="auth/cancelled-popup-request"){err.textContent="로그인 창이 닫혔어요. 버튼을 눌러 다시 시도해 주세요."}
+else if(code==="auth/unauthorized-domain"){err.textContent="이 주소에서는 구글 로그인이 허용되지 않아요. jabjunet.pages.dev 주소로 접속해 다시 시도해 주세요."}
+else{err.textContent="로그인에 실패했어요. 앱 안 브라우저(카카오톡 등)에서는 구글 로그인이 막힐 수 있어요. 크롬이나 사파리에서 열면 더 잘 돼요."}
+err.hidden=false;
+}
+function inAppBrowser(){var ua=navigator.userAgent||"";return /KAKAOTALK|FBAN|FBAV|FB_IAB|Instagram|Line\/|NAVER\(inapp|DaumApps|; wv\)/i.test(ua)}
 glogin.addEventListener("click",function(){
 err.hidden=true;
-try{
+if(typeof firebase==="undefined"||!firebase.auth){err.textContent="채팅을 불러오지 못했어요. 패널을 닫았다가 다시 열어 주세요.";err.hidden=false;return}
+var auth=firebase.auth();
 var prov=new firebase.auth.GoogleAuthProvider();
-firebase.auth().signInWithPopup(prov).catch(function(){err.textContent="로그인에 실패했어요. 다시 시도해 주세요.";err.hidden=false});
-}catch(e){err.textContent="로그인에 실패했어요. 다시 시도해 주세요.";err.hidden=false}
+function goRedirect(){
+try{sessionStorage.setItem("hlkrx_chat_redirect","1")}catch(e){}
+auth.signInWithRedirect(prov).catch(function(e){try{sessionStorage.removeItem("hlkrx_chat_redirect")}catch(x){}chatLoginFail(e)});
+}
+function goPopup(){
+auth.signInWithPopup(prov).catch(function(e){
+var code=e&&e.code?String(e.code):"";
+if(code==="auth/popup-closed-by-user"||code==="auth/cancelled-popup-request"){chatLoginFail(e);return}
+/* 팝업이 막히는 환경(앱 내 브라우저·모바일 웹뷰 등)에서는 페이지 이동 방식으로 자동 전환 */
+try{sessionStorage.setItem("hlkrx_chat_popupfail","1")}catch(x){}
+goRedirect();
+});
+}
+try{
+var popupFailBefore=false;try{popupFailBefore=sessionStorage.getItem("hlkrx_chat_popupfail")==="1"}catch(e){}
+var start=function(){if(inAppBrowser()||popupFailBefore)goRedirect();else goPopup()};
+if(auth.setPersistence&&firebase.auth.Auth&&firebase.auth.Auth.Persistence){auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).then(start,start)}else start();
+}catch(e){chatLoginFail(e)}
 });
 form.addEventListener("submit",function(e){
 e.preventDefault();
@@ -1390,6 +1416,8 @@ window.__closeChat=close;
 btn.addEventListener("click",function(){if(!panel.hidden){close();return}open()});
 document.getElementById("chat-x").addEventListener("click",close);
 document.addEventListener("keydown",function(e){if(e.key==="Escape"&&!panel.hidden)close()});
+/* 구글 로그인 리다이렉트에서 돌아온 경우 채팅 패널을 자동으로 다시 열어 로그인 상태를 이어 보여준다 */
+try{if(sessionStorage.getItem("hlkrx_chat_redirect")==="1"){sessionStorage.removeItem("hlkrx_chat_redirect");open()}}catch(e){}
 })();
 </script>
 <script>
