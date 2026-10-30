@@ -462,7 +462,8 @@ main{padding:18px 12px 40px}
 .cmp-iv button{min-height:30px;padding:4px 11px;font-size:12.5px}
 .cmp-lwclg{font-size:12px;color:var(--mut);min-height:18px;margin-top:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cmp-lwclg b{color:var(--tx)}
-.cmp-lwc{position:relative;height:400px;margin-top:4px;border:1px solid var(--bd);border-radius:6px;background:var(--sf);overflow:hidden}
+.cmp-lwc{position:relative;height:400px;margin-top:4px;border:1px solid var(--bd);border-radius:6px;background:var(--sf);overflow:hidden;touch-action:none}
+.cmp-zoom button{min-height:30px;padding:4px 11px;font-size:12.5px}
 @media(min-width:1024px){.cmp-lwc{height:520px}}
 .cmp-mrg-note{color:var(--mut);font-size:12.5px;line-height:1.6;margin:8px 0 0}
 /* 비교 탭: 검색 후보 — 가격 박스 없는 작은 한 줄 행 */
@@ -1712,7 +1713,7 @@ if(widget&&typeof widget.onChartReady==="function")widget.onChartReady(done);
 }catch(e){setTimeout(function(){if(!ready&&w._cmpTok===tok&&!w.querySelector("iframe"))cmpShowHint(idx,sym,"차트 연결 중 문제가 생겼어요. 아래 버튼으로 차트를 다시 걸어보세요.")},3000)}})}
 /* 비교 탭 과거 차트: 선물 상장 전 실제 주식 일봉을 직접 받아 SVG로 그린다.
    (미리보기에서 확정한 방식 — TV 위젯이 아니라 페이지가 캔들 데이터로 직접 렌더링)
-   데이터는 Yahoo 일봉(공개 프록시 경유) → stockanalysis 일봉(최대 5년) → Stooq CSV 순으로 시도하고,
+   데이터는 Yahoo 일봉(여러 공개 프록시 동시 경주) · stockanalysis 일봉(최대 5년) · Stooq CSV를 함께 시도하고,
    전부 실패하면 오류 문구와 다시 시도 버튼만 표시한다. 없는 데이터를 지어내지 않는다.
    이음매: 바이낸스 선물 첫 일봉 시각을 상장 시점으로 보고, 그 이전 실제 주식 일봉만 남긴다. */
 var HISTD={},HISTR={1:"all",2:"all"},HISTW=[];
@@ -1723,18 +1724,50 @@ function hFetchText(url,ms){return new Promise(function(res,rej){var ctl=("Abort
 function hParseSA(txt){var j=JSON.parse(txt),arr=j&&j.data;if(!arr||!arr.length)throw new Error("sa");var cs=[];for(var i=0;i<arr.length;i++){var x=arr[i],c=parseFloat(x.c);if(!(c>0))continue;var t=Date.parse(x.t);if(!(t>0))continue;cs.push({t:t,o:parseFloat(x.o)||c,h:parseFloat(x.h)||c,l:parseFloat(x.l)||c,c:c})}cs.sort(function(a,b){return a.t-b.t});if(cs.length<10)throw new Error("sa short");return cs}
 function hParseYahoo(txt){var j=JSON.parse(txt),r=j&&j.chart&&j.chart.result&&j.chart.result[0];if(!r||!r.timestamp)throw new Error("yh");var q=r.indicators&&r.indicators.quote&&r.indicators.quote[0];if(!q||!q.close)throw new Error("yh q");var cs=[];for(var i=0;i<r.timestamp.length;i++){var c=parseFloat(q.close[i]);if(!(c>0))continue;cs.push({t:r.timestamp[i]*1000,o:parseFloat(q.open[i])||c,h:parseFloat(q.high[i])||c,l:parseFloat(q.low[i])||c,c:c})}if(cs.length<10)throw new Error("yh short");return cs}
 function hParseStooq(txt){if(!txt||txt.indexOf("Date,Open")!==0)throw new Error("sq");var lines=txt.split("\n"),cs=[];for(var i=1;i<lines.length;i++){var p=lines[i].split(",");if(p.length<5)continue;var c=parseFloat(p[4]);if(!(c>0))continue;var t=Date.parse(p[0]);if(!(t>0))continue;cs.push({t:t,o:parseFloat(p[1])||c,h:parseFloat(p[2])||c,l:parseFloat(p[3])||c,c:c})}if(cs.length<10)throw new Error("sq short");return cs}
+function hParseYahooAO(txt){var j=JSON.parse(txt);if(j&&typeof j.contents==="string")return hParseYahoo(j.contents);throw new Error("ao")}
+/* 데이터 통로 보강: 예전에는 프록시를 하나씩 순서대로 시도해 앞 통로가 느리면
+   그만큼 통째로 기다려야 했고, 타임아웃이 겹치면 실패로 보이기 쉬웠다.
+   이제는 Yahoo 호스트(query1·query2)와 프록시(cors.lol·allorigins·codetabs·corsproxy)를
+   섞은 여러 경로를 동시에 출발시켜 가장 먼저 온 정상 응답을 채택한다(경주 방식).
+   한 라운드가 전부 실패하면 잠시 쉬었다가 전체를 한 번 더 자동으로 시도하고,
+   그래도 실패하면 기존처럼 정직하게 실패로 처리한다. 종목별 진행 중 요청은 공유해
+   같은 종목을 다시 열 때 중복 다운로드를 막고, 성공 결과는 HISTD 캐시가 재사용한다. */
+function hRace(fns){
+return new Promise(function(res,rej){
+if(!fns.length){rej(new Error("no src"));return}
+var left=fns.length,done=false;
+fns.forEach(function(fn){
+var pr;try{pr=fn()}catch(e){pr=Promise.reject(e)}
+Promise.resolve(pr).then(function(v){if(!done){done=true;res(v)}}).catch(function(){left--;if(left===0&&!done)rej(new Error("all routes failed"))})})})}
+function hRaceRetry(make,rounds){
+var p=hRace(make());
+for(var r=1;r<rounds;r++){p=p.catch(function(){return new Promise(function(rs){setTimeout(rs,900)}).then(function(){return hRace(make())})})}
+return p}
+var HISTPEND={};
 function histFetchStock(can){
+if(HISTD[can]&&HISTD[can].cs)return Promise.resolve(HISTD[can].cs);
+if(HISTPEND[can])return HISTPEND[can];
 var sym=histSym(can);
-var yurl="https://query1.finance.yahoo.com/v8/finance/chart/"+encodeURIComponent(sym)+"?period1=0&period2="+Math.floor(Date.now()/1000)+"&interval=1d";
+function make(){
+var now=Math.floor(Date.now()/1000);
+var y1="https://query1.finance.yahoo.com/v8/finance/chart/"+encodeURIComponent(sym)+"?period1=0&period2="+now+"&interval=1d";
+var y2="https://query2.finance.yahoo.com/v8/finance/chart/"+encodeURIComponent(sym)+"?period1=0&period2="+now+"&interval=1d";
 var sqsym=(sym.slice(-3)===".HK")?sym.toLowerCase():sym.toLowerCase()+".us";
 var squrl="https://stooq.com/q/d/l/?s="+encodeURIComponent(sqsym)+"&i=d";
-var srcs=[
-function(){return hFetchText("https://api.cors.lol/?url="+encodeURIComponent(yurl)).then(hParseYahoo)},
-function(){return hFetchText("https://api.allorigins.win/raw?url="+encodeURIComponent(yurl)).then(hParseYahoo)},
-function(){return hFetchText("https://api.codetabs.com/v1/proxy?quest="+encodeURIComponent(yurl)).then(hParseYahoo)},
-function(){return hFetchText("https://stockanalysis.com/api/symbol/s/"+encodeURIComponent(sym)+"/history?range=5Y&period=Daily").then(hParseSA)},
-function(){return hFetchText("https://api.allorigins.win/raw?url="+encodeURIComponent(squrl)).then(hParseStooq)}];
-var p=Promise.reject(new Error("start"));srcs.forEach(function(s){p=p.catch(s)});return p}
+return [
+function(){return hFetchText("https://api.cors.lol/?url="+encodeURIComponent(y1),8000).then(hParseYahoo)},
+function(){return hFetchText("https://api.allorigins.win/raw?url="+encodeURIComponent(y2),8000).then(hParseYahoo)},
+function(){return hFetchText("https://api.codetabs.com/v1/proxy?quest="+encodeURIComponent(y1),8000).then(hParseYahoo)},
+function(){return hFetchText("https://corsproxy.io/?url="+encodeURIComponent(y2),8000).then(hParseYahoo)},
+function(){return hFetchText("https://api.allorigins.win/get?url="+encodeURIComponent(y1),8000).then(hParseYahooAO)},
+function(){return hFetchText(y2,6000).then(hParseYahoo)},
+function(){return hFetchText("https://stockanalysis.com/api/symbol/s/"+encodeURIComponent(sym)+"/history?range=5Y&period=Daily",8000).then(hParseSA)},
+function(){return hFetchText("https://api.cors.lol/?url="+encodeURIComponent(squrl),8000).then(hParseStooq)},
+function(){return hFetchText("https://api.allorigins.win/raw?url="+encodeURIComponent(squrl),8000).then(hParseStooq)}]}
+var p=hRaceRetry(make,2);
+HISTPEND[can]=p;
+p.then(function(){delete HISTPEND[can]},function(){delete HISTPEND[can]});
+return p}
 function histFetchList(can){
 return fetch("https://www.binance.com/fapi/v1/klines?symbol="+encodeURIComponent(can+"USDT")+"&interval=1d&startTime=0&limit=1").then(function(r){return r.json()}).then(function(j){return (j&&j[0]&&+j[0][0]>0)?+j[0][0]:null}).catch(function(){return null})}
 function cmpLoadHist(idx){
@@ -1756,15 +1789,27 @@ w.innerHTML='<div class="tvmsg"><b>과거 차트를 불러오지 못했어요</b
 var b=w.querySelector(".tvretry");if(b)b.addEventListener("click",function(){cmpLoadHist(idx)})})}
 /* 지수 차트: KRX(코스피·코스닥)는 무료 TradingView 위젯이 표시를 허용하지 않아(위젯 데이터 FAQ)
    위젯 대신 Yahoo 일봉을 받아 같은 SVG 렌더러로 직접 그린다. */
+var IDXPEND={};
 function idxFetch(ysym){
-var yurl="https://query1.finance.yahoo.com/v8/finance/chart/"+encodeURIComponent(ysym)+"?period1=0&period2="+Math.floor(Date.now()/1000)+"&interval=1d";
+if(IDXPEND[ysym])return IDXPEND[ysym];
+function make(){
+var now=Math.floor(Date.now()/1000);
+var y1="https://query1.finance.yahoo.com/v8/finance/chart/"+encodeURIComponent(ysym)+"?period1=0&period2="+now+"&interval=1d";
+var y2="https://query2.finance.yahoo.com/v8/finance/chart/"+encodeURIComponent(ysym)+"?period1=0&period2="+now+"&interval=1d";
 var squrl="https://stooq.com/q/d/l/?s="+encodeURIComponent(ysym.toLowerCase())+"&i=d";
-var srcs=[
-function(){return hFetchText("https://api.cors.lol/?url="+encodeURIComponent(yurl)).then(hParseYahoo)},
-function(){return hFetchText("https://api.allorigins.win/raw?url="+encodeURIComponent(yurl)).then(hParseYahoo)},
-function(){return hFetchText("https://api.codetabs.com/v1/proxy?quest="+encodeURIComponent(yurl)).then(hParseYahoo)},
-function(){return hFetchText("https://api.allorigins.win/raw?url="+encodeURIComponent(squrl)).then(hParseStooq)}];
-var p=Promise.reject(new Error("start"));srcs.forEach(function(s){p=p.catch(s)});return p}
+return [
+function(){return hFetchText("https://api.cors.lol/?url="+encodeURIComponent(y1),8000).then(hParseYahoo)},
+function(){return hFetchText("https://api.allorigins.win/raw?url="+encodeURIComponent(y2),8000).then(hParseYahoo)},
+function(){return hFetchText("https://api.codetabs.com/v1/proxy?quest="+encodeURIComponent(y1),8000).then(hParseYahoo)},
+function(){return hFetchText("https://corsproxy.io/?url="+encodeURIComponent(y2),8000).then(hParseYahoo)},
+function(){return hFetchText("https://api.allorigins.win/get?url="+encodeURIComponent(y2),8000).then(hParseYahooAO)},
+function(){return hFetchText(y1,6000).then(hParseYahoo)},
+function(){return hFetchText("https://api.cors.lol/?url="+encodeURIComponent(squrl),8000).then(hParseStooq)},
+function(){return hFetchText("https://api.allorigins.win/raw?url="+encodeURIComponent(squrl),8000).then(hParseStooq)}]}
+var p=hRaceRetry(make,2);
+IDXPEND[ysym]=p;
+p.then(function(){delete IDXPEND[ysym]},function(){delete IDXPEND[ysym]});
+return p}
 function cmpLoadIdx(idx){
 var can=CMPSEL[idx];if(!can)return;
 var w=el("cmp-hcvw"+idx);if(!w)return;
@@ -1863,7 +1908,7 @@ lwcWait.push(cb);
 if(lwcJs)return;
 lwcJs=1;
 var s=document.createElement("script");
-s.src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.2.3/dist/lightweight-charts.standalone.production.js";s.async=true;
+s.src="https://cdn.jsdelivr.net/npm/lightweight-charts@5.0.8/dist/lightweight-charts.standalone.production.js";s.async=true;
 s.onload=function(){var ok=!!window.LightweightCharts;if(!ok)lwcJs=0;lwcWait.splice(0).forEach(function(f){f(ok)})};
 s.onerror=function(){lwcJs=0;lwcWait.splice(0).forEach(function(f){f(false)})};
 document.head.appendChild(s)}
@@ -1911,15 +1956,20 @@ function v(n){return cs2.getPropertyValue(n).trim()}
 var th={bg:v("--sf")||"#ffffff",mut:v("--mut"),bd:v("--bd"),up:v("--up"),dn:v("--dn"),warn:v("--warn")};
 if(w._lwc){try{w._lwc.remove()}catch(e){}w._lwc=null}
 w.innerHTML="";
-var chart=LightweightCharts.createChart(w,{autoSize:true,layout:{background:{type:"solid",color:th.bg},textColor:th.mut,fontSize:11},grid:{vertLines:{color:th.bd},horzLines:{color:th.bd}},rightPriceScale:{borderColor:th.bd},timeScale:{borderColor:th.bd,timeVisible:!!opt.intra,secondsVisible:false},crosshair:{vertLine:{labelBackgroundColor:th.mut},horzLine:{labelBackgroundColor:th.mut}}});
-var ser=chart.addCandlestickSeries({upColor:th.up,downColor:th.dn,borderUpColor:th.up,borderDownColor:th.dn,wickUpColor:th.up,wickDownColor:th.dn});
+/* 줌 설정: 일봉이 수천 개라 기본 최소 간격(0.5px)으로는 전체가 다 안 담기고,
+   기본 최대 간격(차트 폭의 절반)에서는 확대 한계에 빨리 닿는다.
+   minBarSpacing을 0.01로 낮춰 전체 구간을 한 화면에 담을 수 있게 하고,
+   maxBarSpacing을 1000으로 올려 한계 없이 깊이 확대할 수 있게 푼다(v5 전용 옵션).
+   모바일 핀치 확대(handleScale.pinch)와 휠 확대는 명시적으로 켜 둔다. */
+var chart=LightweightCharts.createChart(w,{autoSize:true,layout:{background:{type:"solid",color:th.bg},textColor:th.mut,fontSize:11},grid:{vertLines:{color:th.bd},horzLines:{color:th.bd}},rightPriceScale:{borderColor:th.bd},timeScale:{borderColor:th.bd,timeVisible:!!opt.intra,secondsVisible:false,minBarSpacing:0.01,maxBarSpacing:1000},crosshair:{vertLine:{labelBackgroundColor:th.mut},horzLine:{labelBackgroundColor:th.mut}},handleScroll:{mouseWheel:true,pressedMouseMove:true,horzTouchDrag:true,vertTouchDrag:true},handleScale:{mouseWheel:true,pinch:true,axisPressedMouseMove:{time:true,price:true},axisDoubleClickReset:{time:true,price:true}},kineticScroll:{touch:true,mouse:false}});
+var ser=(typeof chart.addSeries==="function"&&LightweightCharts.CandlestickSeries)?chart.addSeries(LightweightCharts.CandlestickSeries,{upColor:th.up,downColor:th.dn,borderUpColor:th.up,borderDownColor:th.dn,wickUpColor:th.up,wickDownColor:th.dn}):chart.addCandlestickSeries({upColor:th.up,downColor:th.dn,borderUpColor:th.up,borderDownColor:th.dn,wickUpColor:th.up,wickDownColor:th.dn});
 var data=lwcData(cs);
 ser.setData(data);
 w._lwc=chart;w._mdata=data;
 if(opt.listT){
 var mi=-1;
 for(var i=0;i<cs.length;i++){if(cs[i].t>=opt.listT){mi=i;break}}
-if(mi>0){try{ser.setMarkers([{time:data[mi].time,position:"aboveBar",color:th.warn,shape:"arrowDown",text:"선물 상장"}])}catch(e){}}}
+if(mi>0){try{var mk=[{time:data[mi].time,position:"aboveBar",color:th.warn,shape:"arrowDown",text:"선물 상장"}];if(typeof LightweightCharts.createSeriesMarkers==="function")LightweightCharts.createSeriesMarkers(ser,mk);else ser.setMarkers(mk)}catch(e){}}}
 var lg=el("cmp-lwclg"+idx);
 function lgTxt(d,prev){
 if(!lg)return;
@@ -1945,6 +1995,19 @@ var d=w._mdata,last=d[d.length-1].time,rng=MRNG[idx]||"all";
 if(rng==="all"){w._lwc.timeScale().fitContent();return}
 var span=(rng==="5y"?5:1)*365.25*86400;
 try{w._lwc.timeScale().setVisibleRange({from:last-span,to:last+86400})}catch(e){w._lwc.timeScale().fitContent()}}
+/* 확대·축소 버튼: 휠·핀치의 기본 확대 속도로는 수천 개 구간에서 원하는 깊이까지
+   가려면 제스처를 여러 번 반복해야 해서, 한 번에 절반씩 줄이고 늘리는 버튼을 함께 둔다.
+   최소 6개 봉까지 확대할 수 있고, 전체 버튼은 일봉이면 선택한 기간 보기로 되돌린다. */
+function mrgZoom(idx,dir){
+var w=el("cmp-lwc"+idx);if(!w||!w._lwc||!w._mdata||!w._mdata.length)return;
+var ts=w._lwc.timeScale(),n=w._mdata.length;
+if(dir==="all"){if((CMPINT[idx]||"1d")==="1d")mrgApplyRange(idx);else{try{ts.fitContent()}catch(e){}}return}
+var vr=null;try{vr=ts.getVisibleLogicalRange()}catch(e){}
+if(!vr||!(vr.to>vr.from))return;
+var len=vr.to-vr.from,ctr=(vr.from+vr.to)/2;
+var nl=dir==="in"?len/2:len*2;
+if(nl<6)nl=6;if(nl>n+12)nl=n+12;
+try{ts.setVisibleLogicalRange({from:ctr-nl/2,to:ctr+nl/2})}catch(e){}}
 function mrgErr(idx,w,msg){
 if(w._lwc){try{w._lwc.remove()}catch(e){}w._lwc=null}
 w.innerHTML='<div class="tvmsg"><b>차트를 불러오지 못했어요</b><span>'+msg+'</span><button type="button" class="tvretry">다시 시도</button></div>';
@@ -1993,7 +2056,7 @@ var src=CMPSRC[idx]||"real";
 var oldL=box.querySelector(".cmp-lwc");if(oldL){oldL._mTok="x";if(oldL._lwc){try{oldL._lwc.remove()}catch(e){}oldL._lwc=null}}
 if(src==="bn"&&!CMPEX[can]&&CMP_TOP10[can]){
 var iv0=CMPINT[idx]||"1d",mr0=MRNG[idx]||"all";
-box.innerHTML='<div class="cmp-mrg-hd"><div class="pair cmp-iv" role="group" aria-label="차트 봉 간격"><button type="button" data-ci="1d" aria-pressed="'+String(iv0==="1d")+'">일봉</button><button type="button" data-ci="5m" aria-pressed="'+String(iv0==="5m")+'">5분</button><button type="button" data-ci="15m" aria-pressed="'+String(iv0==="15m")+'">15분</button><button type="button" data-ci="1h" aria-pressed="'+String(iv0==="1h")+'">1시간</button></div><div class="pair cmp-hist-rng" data-mrng role="group" aria-label="일봉 기간"'+(iv0==="1d"?"":" hidden")+'><button type="button" data-mr="all" aria-pressed="'+String(mr0==="all")+'">전체</button><button type="button" data-mr="5y" aria-pressed="'+String(mr0==="5y")+'">5년</button><button type="button" data-mr="1y" aria-pressed="'+String(mr0==="1y")+'">1년</button></div></div><div class="cmp-lwclg" id="cmp-lwclg'+idx+'"></div><div class="cmp-lwc" id="cmp-lwc'+idx+'"></div><p class="cmp-mrg-note">일봉은 상장 전 실제 주식과 상장 후 바이낸스 선물을 하나로 이은 차트예요. 분봉은 선물 상장 이후 구간만 있어요.</p>';
+box.innerHTML='<div class="cmp-mrg-hd"><div class="pair cmp-iv" role="group" aria-label="차트 봉 간격"><button type="button" data-ci="1d" aria-pressed="'+String(iv0==="1d")+'">일봉</button><button type="button" data-ci="5m" aria-pressed="'+String(iv0==="5m")+'">5분</button><button type="button" data-ci="15m" aria-pressed="'+String(iv0==="15m")+'">15분</button><button type="button" data-ci="1h" aria-pressed="'+String(iv0==="1h")+'">1시간</button></div><div class="pair cmp-hist-rng" data-mrng role="group" aria-label="일봉 기간"'+(iv0==="1d"?"":" hidden")+'><button type="button" data-mr="all" aria-pressed="'+String(mr0==="all")+'">전체</button><button type="button" data-mr="5y" aria-pressed="'+String(mr0==="5y")+'">5년</button><button type="button" data-mr="1y" aria-pressed="'+String(mr0==="1y")+'">1년</button></div><div class="pair cmp-zoom" role="group" aria-label="차트 확대·축소"><button type="button" data-zm="in">＋ 확대</button><button type="button" data-zm="out">－ 축소</button><button type="button" data-zm="all">전체</button></div></div><div class="cmp-lwclg" id="cmp-lwclg'+idx+'"></div><div class="cmp-lwc" id="cmp-lwc'+idx+'"></div><p class="cmp-mrg-note">일봉은 상장 전 실제 주식과 상장 후 바이낸스 선물을 하나로 이은 차트예요. 분봉은 선물 상장 이후 구간만 있어요.</p>';
 cmpSyncSrc(idx);
 cmpLoadMerged(idx);
 return}
@@ -2073,7 +2136,7 @@ listEl.addEventListener("click",function(e){if(listEl._mdT&&Date.now()-listEl._m
 listEl.addEventListener("keydown",function(e){if(e.key!=="Enter"&&e.key!==" ")return;var row=e.target.closest?e.target.closest("[data-cmpcan]"):null;if(!row)return;e.preventDefault();cmpToggle(idx,row.getAttribute("data-cmpcan"))});
 }
 var chartEl=el("cmp-chart"+idx);
-if(chartEl)chartEl.addEventListener("click",function(e){var ci=e.target.closest?e.target.closest("[data-ci]"):null;if(ci){CMPINT[idx]=ci.getAttribute("data-ci");chartEl.querySelectorAll("[data-ci]").forEach(function(x){x.setAttribute("aria-pressed",String(x===ci))});var mrw=chartEl.querySelector("[data-mrng]");if(mrw)mrw.hidden=CMPINT[idx]!=="1d";cmpLoadMerged(idx);return}var mrb=e.target.closest?e.target.closest("[data-mr]"):null;if(mrb){MRNG[idx]=mrb.getAttribute("data-mr");chartEl.querySelectorAll("[data-mr]").forEach(function(x){x.setAttribute("aria-pressed",String(x===mrb))});mrgApplyRange(idx);return}var hr=e.target.closest?e.target.closest("[data-hr]"):null;if(hr){HISTR[idx]=hr.getAttribute("data-hr");chartEl.querySelectorAll("[data-hr]").forEach(function(x){x.setAttribute("aria-pressed",String(x===hr))});histDraw(idx);return}var b=e.target.closest?e.target.closest("[data-cmpclose]"):null;if(b)cmpCloseChart(idx)});
+if(chartEl)chartEl.addEventListener("click",function(e){var zm=e.target.closest?e.target.closest("[data-zm]"):null;if(zm){mrgZoom(idx,zm.getAttribute("data-zm"));return}var ci=e.target.closest?e.target.closest("[data-ci]"):null;if(ci){CMPINT[idx]=ci.getAttribute("data-ci");chartEl.querySelectorAll("[data-ci]").forEach(function(x){x.setAttribute("aria-pressed",String(x===ci))});var mrw=chartEl.querySelector("[data-mrng]");if(mrw)mrw.hidden=CMPINT[idx]!=="1d";cmpLoadMerged(idx);return}var mrb=e.target.closest?e.target.closest("[data-mr]"):null;if(mrb){MRNG[idx]=mrb.getAttribute("data-mr");chartEl.querySelectorAll("[data-mr]").forEach(function(x){x.setAttribute("aria-pressed",String(x===mrb))});mrgApplyRange(idx);return}var hr=e.target.closest?e.target.closest("[data-hr]"):null;if(hr){HISTR[idx]=hr.getAttribute("data-hr");chartEl.querySelectorAll("[data-hr]").forEach(function(x){x.setAttribute("aria-pressed",String(x===hr))});histDraw(idx);return}var b=e.target.closest?e.target.closest("[data-cmpclose]"):null;if(b)cmpCloseChart(idx)});
 });
 setInterval(function(){var had={};[1,2].forEach(function(idx){if(CMPSEL[idx])had[idx]=CMPSEL[idx]});REALP={};REALPEND={};EXP={};EXPEND={};var pcSec=el("pc");if(pcSec&&!pcSec.hidden){cmpDraw();[1,2].forEach(function(idx){if(had[idx]&&CMPSEL[idx]===had[idx]&&REALP[had[idx]]===undefined)fetchReal([had[idx]])})}},60000);
 })();
