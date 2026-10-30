@@ -367,6 +367,12 @@ main{padding:18px 12px 40px}
 #pf .fv2{font-size:12.5px;font-weight:600;white-space:nowrap;letter-spacing:-.02em}
 #pf .fper{color:var(--mut);font-size:11px;font-weight:500;white-space:nowrap}
 #pf .pempty{padding:11px 10px;font-size:13px;color:var(--mut)}
+#pf .fmore{display:flex;align-items:center;justify-content:center;gap:10px;margin:14px 0 2px;flex-wrap:wrap}
+#pf .fmore[hidden]{display:none}
+#pf .fmore button{min-height:44px;padding:10px 22px;border:1px solid var(--bd);background:var(--sf);color:var(--tx);border-radius:999px;font:inherit;font-size:13.5px;font-weight:700;cursor:pointer}
+#pf .fmore button:hover{background:var(--sf2)}
+#pf .fmore span{font-size:12.5px;color:var(--mut)}
+#pf #fsent{height:1px}
 #pf .nm b{font-size:13px}
 #pf .nm small{font-size:11.5px}
 #pf .nm>div{display:flex;align-items:baseline;gap:7px}
@@ -594,6 +600,8 @@ main{padding:18px 12px 40px}
 <div class="phd" id="fh" role="row"><div role="columnheader" data-k="n">종목<span class="ar"></span></div><div role="columnheader" data-k="hl">HL 펀딩<span class="ar"></span></div><div role="columnheader" data-k="bn">BN 펀딩<span class="ar"></span></div><div role="columnheader" data-k="okx">OKX 펀딩<span class="ar"></span></div><div role="columnheader" data-k="by">BY 펀딩<span class="ar"></span></div></div>
 <div id="fb"></div>
 </div></div>
+<div class="fmore" id="fmore" hidden><button type="button" id="fmore-btn">더 보기</button><span id="fmore-cnt" role="status"></span></div>
+<div id="fsent" aria-hidden="true"></div>
 <p class="note">펀딩비는 각 거래소가 공시하는 펀딩 금리입니다. 양수면 롱 포지션이 숏 포지션에게, 음수면 숏이 롱에게 비용을 지급하는 구조입니다. OKX는 종목별 조회라 거래량 상위 40개 위주로 불러오며, 나머지와 미상장 종목은 —로 표시됩니다.</p>
 </section>
 
@@ -1010,14 +1018,20 @@ function fName(can){try{if(NM[can])return NM[can];var bt=fromCan("bn",can);if(BN
 function fVal(ex,can){var e=FUND[ex]&&FUND[ex][can];if(!e||isNaN(e.r))return null;return e}
 var FPREV={};
 function ffCell(ex,can){var e=fVal(ex,can);if(!e)return '<span class="na">—</span>';var c=e.r>0?"up":e.r<0?"dn":"";var s=(e.r>0?"+":"")+e.r.toFixed(4)+"%/"+(e.h||8)+"h";var k=ex+":"+can;var ch=FPREV[k]!==undefined&&FPREV[k]!==s;FPREV[k]=s;return '<span class="fcell'+(ch?" fchg":"")+'"><span class="fv2 '+c+'">'+(e.r>0?"+":"")+e.r.toFixed(4)+'%</span><span class="fper">/'+(e.h||8)+'h</span></span>'}
+var fShow=10,fTotal=0;
 function drawF(){var fbEl=el("fb");if(!fbEl)return;var qEl=el("fq"),q=qEl?qEl.value.trim().toUpperCase():"",qt=qEl?qEl.value.trim():"";
 var list=fUniverse().filter(function(can){if(!q)return true;return can.toUpperCase().indexOf(q)>=0||fName(can).indexOf(qt)>=0});
 if(fs.k){list.sort(function(a,b){if(fs.k==="n"){var c0=a<b?-1:a>b?1:0;return c0*fs.d}var ea=fVal(fs.k,a),eb=fVal(fs.k,b);if(!ea&&!eb)return 0;if(!ea)return 1;if(!eb)return -1;return (ea.r-eb.r)*fs.d})}
 list=list.filter(function(can){return FAV[can]}).concat(list.filter(function(can){return !FAV[can]}));
-fbEl.innerHTML=list.map(function(can){var nm=fName(can);return '<div class="prow" role="row"><div role="cell"><div class="nm">'+av(can)+'<div><b>'+can+'</b>'+(nm?' <small>'+nm+'</small>':'')+'</div>'+fvBtn(can)+'</div></div><div role="cell">'+ffCell("hl",can)+'</div><div role="cell">'+ffCell("bn",can)+'</div><div role="cell">'+ffCell("okx",can)+'</div><div role="cell">'+ffCell("by",can)+'</div></div>'}).join("")||'<div class="pempty">검색 결과가 없습니다.</div>';
+fTotal=list.length;var vis=list.slice(0,fShow);
+fbEl.innerHTML=vis.map(function(can){var nm=fName(can);return '<div class="prow" role="row"><div role="cell"><div class="nm">'+av(can)+'<div><b>'+can+'</b>'+(nm?' <small>'+nm+'</small>':'')+'</div>'+fvBtn(can)+'</div></div><div role="cell">'+ffCell("hl",can)+'</div><div role="cell">'+ffCell("bn",can)+'</div><div role="cell">'+ffCell("okx",can)+'</div><div role="cell">'+ffCell("by",can)+'</div></div>'}).join("")||'<div class="pempty">검색 결과가 없습니다.</div>';
+var fm=el("fmore"),fc=el("fmore-cnt");if(fm){var hasMore=fTotal>fShow;fm.hidden=!hasMore;if(fc)fc.textContent=hasMore?("총 "+fTotal+"개 중 "+vis.length+"개 표시 · 남은 "+(fTotal-vis.length)+"개"):""}
 arw(el("fh"),fs)}
-el("fh").addEventListener("click",function(e){var h=e.target.closest("[data-k]");if(!h||!h.dataset.k)return;var k=h.dataset.k;if(fs.k===k){if(fs.d===-1)fs.d=1;else fs={k:null,d:-1}}else fs={k:k,d:-1};drawF()});
-el("fq").addEventListener("input",drawF);
+function fMore(){if(fShow>=fTotal)return;fShow+=10;drawF()}
+el("fmore-btn").addEventListener("click",fMore);
+if(window.IntersectionObserver){var fio=new IntersectionObserver(function(es){for(var i=0;i<es.length;i++){if(es[i].isIntersecting){var pfEl=el("pf");if(pfEl&&!pfEl.hidden&&fTotal>fShow)fMore();break}}},{rootMargin:"0px 0px 80px 0px"});var fsentEl=el("fsent");if(fsentEl)fio.observe(fsentEl)}
+el("fh").addEventListener("click",function(e){var h=e.target.closest("[data-k]");if(!h||!h.dataset.k)return;var k=h.dataset.k;if(fs.k===k){if(fs.d===-1)fs.d=1;else fs={k:null,d:-1}}else fs={k:k,d:-1};fShow=10;drawF()});
+el("fq").addEventListener("input",function(){fShow=10;drawF()});
 drawF();
 /* 펀딩비 실시간 표시: 어느 거래소에서든 새 펀딩이 들어오면 상태 줄에 마지막 업데이트 시각을 찍는다.
    HL 펀딩은 가격 조회 백오프와 무관하게 전용으로 다시 불러오고, 펀딩 탭이 열려 있는 동안 10초마다,
