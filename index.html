@@ -42,10 +42,10 @@ h2{font-size:16px;font-weight:700;margin:8px 0 10px}
 .tabs button{flex:1 1 0;min-height:40px;border:0;background:none;color:var(--mut);padding:8px 2px;font:inherit;font-size:15px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap}
 .tabs button[aria-pressed="true"]{color:var(--tx);font-weight:800;border-bottom-color:var(--ac)}
 /* 데스크톱: 해외 탭 바로 아래에 붙는 전환 드롭다운 (항목 하나) */
-.tabdd{position:absolute;top:100%;left:20%;width:20%;background:var(--sf);border:1px solid var(--bd);border-top:0;border-radius:0 0 10px 10px;box-shadow:0 12px 26px rgba(0,0,0,.20);z-index:40;padding:4px}
+.tabdd{position:absolute;top:100%;left:20%;width:20%;background:transparent;border:0;box-shadow:none;z-index:40;padding:4px}
 .tabdd[hidden]{display:none}
-.tabdd-i{min-height:38px;display:flex;align-items:center;justify-content:center;font-size:14.5px;font-weight:700;color:var(--tx);border-radius:7px;cursor:pointer;-webkit-tap-highlight-color:transparent}
-.tabdd-i:hover,.tabdd-i:focus-visible{background:var(--sf2);outline:none}
+.tabdd-i{min-height:38px;display:flex;align-items:center;justify-content:center;font-size:14.5px;font-weight:700;color:var(--tx);background:transparent;border:0;border-radius:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.tabdd-i:hover,.tabdd-i:focus-visible{background:transparent;outline:none}
 @media(max-width:1023px){.tabdd{display:none!important}}
 /* 버튼·토글 공통 */
 .chips,.xch{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;align-items:center}
