@@ -156,6 +156,20 @@ tr.grp td{background:var(--sf2);color:var(--mut);font-weight:700;font-size:12px;
 #pb .av{width:28px;height:28px}
 #fetf[hidden]{display:none}
 #f[hidden]{display:none}
+#xv[hidden]{display:none}
+#pb .phd[hidden]{display:none}
+#etfnote[hidden]{display:none}
+/* 실제 상장 ETF 목록 행: 크립토 perp 행과 분리된 전용 레이아웃 (별·스파크라인·거래소 비교 없음) */
+.etfr{display:flex;align-items:center;gap:10px;padding:11px 10px;border-bottom:1px solid var(--bd)}
+.etfr:last-child{border-bottom:0}
+.etfr:hover{background:var(--sf2)}
+.etfm{display:flex;align-items:center;gap:8px;min-width:0;flex:1 1 auto;flex-wrap:wrap}
+.etfm b{font-size:13.5px;white-space:nowrap}
+.etfn{color:var(--mut);font-size:12.5px}
+.etfd{flex:none;display:flex;flex-direction:column;text-align:right;min-width:0}
+.etfd>span:first-child{font-size:12.5px;font-weight:600}
+.etfs{color:var(--mut);font-size:11.5px}
+@media(max-width:520px){.etfr{flex-direction:column;align-items:flex-start;gap:3px}.etfd{text-align:left}}
 /* 카드·요약 타일 (금·코스피) */
 .c{background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:16px;margin-bottom:12px}
 .sum{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
@@ -590,19 +604,21 @@ main{padding:18px 12px 40px}
 </div>
 <div class="chips" id="fetf" hidden>
 <button type="button" data-t="all" aria-pressed="true">ETF 전체</button>
-<button type="button" data-t="한국" aria-pressed="false">한국</button>
+<button type="button" data-t="US" aria-pressed="false">미국 상장</button>
+<button type="button" data-t="KR" aria-pressed="false">국내 상장</button>
 <button type="button" data-t="지수" aria-pressed="false">지수</button>
 <button type="button" data-t="반도체" aria-pressed="false">반도체</button>
 <button type="button" data-t="레버리지" aria-pressed="false">레버리지</button>
 <button type="button" data-t="채권" aria-pressed="false">채권</button>
 <button type="button" data-t="원자재" aria-pressed="false">원자재</button>
+<button type="button" data-t="배당" aria-pressed="false">배당</button>
 <button type="button" data-t="테마" aria-pressed="false">테마</button>
-<button type="button" data-t="기타" aria-pressed="false">기타</button>
 </div>
 <div class="wrap"><div class="plist" role="table">
 <div class="phd" id="hh" role="row"><div role="columnheader">종목</div><div role="columnheader">가격(USD)</div><div role="columnheader" data-k="c">24h<span class="ar"></span></div><div role="columnheader" data-k="v">거래량<span class="ar"></span></div></div>
 <div id="tb"></div>
 </div></div>
+<p class="note" id="etfnote" hidden>실제 거래소에 상장된 ETF입니다. 이 목록에서는 실시간 가격 대신 추종지수와 운용 정보(미국 ETF는 운용보수 연 %)를 표시합니다. 실제 가격은 거래소·증권사 앱에서 확인하세요. 레버리지·인버스 ETF는 일일 수익률을 배율로 추종해 장기 보유 시 기초지수 수익률과 크게 달라질 수 있습니다.</p>
 </section>
 <section id="pg" hidden>
 <div class="pick"><span class="xselw mtw"><button type="button" class="xsel" id="mt-btn" aria-haspopup="listbox" aria-expanded="false" aria-label="원자재 선택"><span class="xnm" id="mt-nm">금</span><span class="xca" aria-hidden="true">▾</span></button><div class="xmenu" id="mt-menu" role="listbox" aria-label="원자재 선택" hidden><button type="button" role="option" data-mtv="au" aria-selected="true">금</button><button type="button" role="option" data-mtv="ag" aria-selected="false">은</button><button type="button" role="option" data-mtv="cu" aria-selected="false">구리</button><button type="button" role="option" data-mtv="oil" aria-selected="false">유가</button></div></span><div class="mtx"><small id="mt-xhl-l">Hyperliquid · 1oz 가격</small><b id="mt-xhl">—</b></div><div class="mtx"><small id="mt-xbn-l">Binance · 1oz 가격</small><b id="mt-xbn">—</b></div></div>
@@ -907,24 +923,77 @@ var SECTORS=["반도체","소프트웨어·AI","플랫폼·인터넷","하드웨
 var SECMAP={AAOI:"반도체",AAPL:"하드웨어·전자",ABBV:"바이오·헬스",ACN:"소프트웨어·AI",ADBE:"소프트웨어·AI",AEHR:"반도체",AGPU:"기타",AKAM:"소프트웨어·AI",ALAB:"반도체",AMAT:"반도체",AMC:"미디어·엔터",AMD:"반도체",AMGN:"바이오·헬스",AMZN:"플랫폼·인터넷",ANET:"하드웨어·전자",ANTHROPIC:"소프트웨어·AI",APLD:"하드웨어·전자",APP:"소프트웨어·AI",ARM:"반도체",ASML:"반도체",ASTS:"우주·방산·로봇",AVGO:"반도체",AXTI:"반도체",BABA:"플랫폼·인터넷",BAC:"금융·핀테크",BB:"소프트웨어·AI",BBX:"ETF·지수",BE:"에너지·소재",BIRD:"소비·유통",BITO:"ETF·지수",BMNR:"크립토",BNC:"크립토",BOT:"우주·방산·로봇",BRKB:"금융·핀테크",BSP:"기타",BWET:"ETF·지수",BX:"금융·핀테크",BYD:"전기차·자동차",CAMBRICON:"반도체",CAT:"산업·기계",CBRS:"반도체",CEG:"에너지·소재",CGNX:"산업·기계",CIEN:"반도체",COHR:"반도체",COIN:"크립토",COST:"소비·유통",CRCL:"크립토",CRDO:"반도체",CRM:"소프트웨어·AI",CRML:"에너지·소재",CRWD:"소프트웨어·AI",CRWV:"소프트웨어·AI",CSCO:"하드웨어·전자",CSOPSAMSUNG2L:"ETF·지수",CSOPSKHYNIX2L:"ETF·지수",CVNA:"전기차·자동차",CVX:"에너지·소재",CXMT:"반도체",CYPH:"크립토",DDOG:"소프트웨어·AI",DELL:"하드웨어·전자",DIS:"미디어·엔터",DJT:"미디어·엔터",DKNG:"미디어·엔터",DRAM:"반도체",EBAY:"플랫폼·인터넷",EWJ:"ETF·지수",EWT:"ETF·지수",EWY:"ETF·지수",EWZ:"ETF·지수",FLEX:"하드웨어·전자",FLNC:"에너지·소재",FLY:"우주·방산·로봇",FWDI:"크립토",GDX:"ETF·지수",GE:"산업·기계",GEV:"에너지·소재",GIGADEV:"반도체",GLW:"하드웨어·전자",GME:"미디어·엔터",GOOGL:"플랫폼·인터넷",GPRO:"하드웨어·전자",GS:"금융·핀테크",GTLB:"소프트웨어·AI",HANMI:"반도체",HD:"소비·유통",HIMS:"바이오·헬스",HK0625:"기타",HK0700:"플랫폼·인터넷",HK0992:"하드웨어·전자",HK1810:"하드웨어·전자",HOOD:"금융·핀테크",HPE:"하드웨어·전자",HUT:"크립토",HYUNDAI:"전기차·자동차",IBKR:"금융·핀테크",IBM:"소프트웨어·AI",INFQ:"기타",INTC:"반도체",INTW:"기타",IONQ:"소프트웨어·AI",IREN:"크립토",ISRG:"바이오·헬스",IWM:"ETF·지수",JIO:"플랫폼·인터넷",JNJ:"바이오·헬스",JP225:"ETF·지수",JPM:"금융·핀테크",KIOXIA:"반도체",KLAC:"반도체",KO:"소비·유통",KODEX200:"ETF·지수",KORU:"ETF·지수",KR200:"ETF·지수",KSTR:"기타",KUAISHOU:"플랫폼·인터넷",LGELECTRONICS:"하드웨어·전자",LITE:"반도체",LLY:"바이오·헬스",LRCX:"반도체",LUNR:"우주·방산·로봇",LYTE:"기타",MAGS:"ETF·지수",MARA:"크립토",MCD:"소비·유통",MDB:"소프트웨어·AI",MDT:"바이오·헬스",MEITUAN:"플랫폼·인터넷",META:"플랫폼·인터넷",MINIMAX:"소프트웨어·AI",MOONSHOT:"소프트웨어·AI",MP:"에너지·소재",MRK:"바이오·헬스",MRNA:"바이오·헬스",MRVL:"반도체",MSFT:"소프트웨어·AI",MSTR:"크립토",MSTU:"ETF·지수",MU:"반도체",MUU:"ETF·지수",MVLL:"ETF·지수",NAVER:"플랫폼·인터넷",NBIS:"소프트웨어·AI",NCLD:"기타",NET:"소프트웨어·AI",NFLX:"미디어·엔터",NKE:"소비·유통",NOK:"하드웨어·전자",NOW:"소프트웨어·AI",NVDA:"반도체",NVDL:"ETF·지수",NVO:"바이오·헬스",OKLO:"에너지·소재",OKTA:"소프트웨어·AI",ON:"반도체",ONDS:"우주·방산·로봇",OPENAI:"소프트웨어·AI",ORCL:"소프트웨어·AI",OSCR:"바이오·헬스",OURA:"하드웨어·전자",OUST:"우주·방산·로봇",PANW:"소프트웨어·AI",PATH:"소프트웨어·AI",PAYP:"금융·핀테크",PDD:"플랫폼·인터넷",PENG:"하드웨어·전자",PLTR:"소프트웨어·AI",POET:"반도체",POPMART:"소비·유통",PURR:"크립토",PURRDAT:"기타",PYPL:"금융·핀테크",QCOM:"반도체",QNT:"크립토",QNTX:"기타",QQQ:"ETF·지수",RAM:"기타",RDDT:"플랫폼·인터넷",RDW:"우주·방산·로봇",RIOT:"크립토",RIVN:"전기차·자동차",RKLB:"우주·방산·로봇",ROK:"산업·기계",RUM:"미디어·엔터",SAMSUNGEM:"하드웨어·전자",SECZ:"기타",SHAZ:"기타",SHEIN:"소비·유통",SHLD:"ETF·지수",SHOP:"플랫폼·인터넷",SIMO:"반도체",SKDD:"ETF·지수",SKHX:"반도체",SKHY:"반도체",SKUU:"ETF·지수",SMCI:"하드웨어·전자",SMH:"ETF·지수",SMSN:"반도체",SNDK:"반도체",SNOW:"소프트웨어·AI",SNPS:"소프트웨어·AI",SNXX:"ETF·지수",SOFI:"금융·핀테크",SOFTBANK:"금융·핀테크",SONY:"하드웨어·전자",SOXL:"ETF·지수",SOXS:"ETF·지수",SPCH:"기타",SPCX:"우주·방산·로봇",SPY:"ETF·지수",SQQQ:"ETF·지수",STRC:"크립토",STXX:"기타",TBT:"ETF·지수",TEAM:"소프트웨어·AI",TEM:"바이오·헬스",TENCENT:"플랫폼·인터넷",TER:"반도체",TLT:"ETF·지수",TMF:"ETF·지수",TQQQ:"ETF·지수",TSEM:"반도체",TSLA:"전기차·자동차",TSLL:"ETF·지수",TSM:"반도체",TTMI:"반도체",TTWO:"미디어·엔터",TWLO:"소프트웨어·AI",TWST:"바이오·헬스",TXN:"반도체",TZA:"ETF·지수",UBER:"플랫폼·인터넷",UMC:"반도체",UNH:"바이오·헬스",UNITREE:"우주·방산·로봇",URNM:"ETF·지수",US100:"ETF·지수",US500:"ETF·지수",USAR:"에너지·소재",USDEX:"기타",USO:"ETF·지수",UVXY:"ETF·지수",V:"금융·핀테크",VICR:"반도체",VKTX:"바이오·헬스",VRT:"하드웨어·전자",VST:"에너지·소재",WDC:"반도체",WEN:"소비·유통",WMT:"소비·유통",XBI:"ETF·지수",XIAOMI:"하드웨어·전자",XLE:"ETF·지수",XOM:"에너지·소재",ZCSH:"기타",ZHIPU:"소프트웨어·AI",ZHONGJI:"반도체",ZM:"소프트웨어·AI",ZS:"소프트웨어·AI"};
 function secOf(can){if(SECMAP[can])return SECMAP[can];try{var xk=["hl","bn","okx","by"];for(var i=0;i<xk.length;i++){var raw=fromCan(xk[i],can);if(EXN[xk[i]].et[raw])return"ETF·지수"}}catch(e){}return"기타"}
 var etfOn=false,etfTh="all";
-/* ETF 테마 분류: 배율형(2배·3배·인버스)은 기초자산보다 레버리지를 우선한다 (SOXL·KORU·CSOP 2배·SKUU/SKDD 등) */
-var ETFTH={EWY:"한국",KODEX200:"한국",KR200:"한국",SPY:"지수",QQQ:"지수",IWM:"지수",US100:"지수",US500:"지수",JP225:"지수",EWJ:"지수",EWT:"지수",EWZ:"지수",MAGS:"지수",BBX:"지수",SMH:"반도체",KORU:"레버리지",CSOPSAMSUNG2L:"레버리지",CSOPSKHYNIX2L:"레버리지",SKDD:"레버리지",SKUU:"레버리지",SOXL:"레버리지",SOXS:"레버리지",MUU:"레버리지",MVLL:"레버리지",SNXX:"레버리지",TQQQ:"레버리지",SQQQ:"레버리지",TSLL:"레버리지",NVDL:"레버리지",MSTU:"레버리지",UVXY:"레버리지",TZA:"레버리지",TMF:"레버리지",TBT:"레버리지",TLT:"채권",GDX:"원자재",USO:"원자재",BWET:"원자재",URNM:"원자재",XLE:"원자재",XBI:"테마",BITO:"테마",SHLD:"테마"};
-function etfTheme(can){return ETFTH[can]||"기타"}
 function isEtf(ex,raw,can){return !!((ex&&ex.et&&ex.et[raw])||secOf(can)==="ETF·지수")}
-function draw(){var ex=EXN[v];if(!ex)return;
+/* 실제 상장 ETF 목록: 크립토 거래소 perp가 아닌, 미국(나스닥/NYSE)과 한국거래소(KRX)에 실제로 상장된 ETF만 모았다.
+   형식: [티커 또는 KRX 6자리 종목코드, 펀드명, 시장(US/KR), 테마, 추종지수, 운용사, 운용보수 연 %(미국 ETF만, 없으면 빈 문자열)]
+   실시간 가격 피드가 없는 정적 페이지라 가격 숫자 대신 추종지수·운용사·운용보수를 표시한다. */
+var REALETF=[
+["SPY","SPDR S&P 500 ETF Trust","US","지수","S&P 500","State Street","0.09"],
+["VOO","Vanguard S&P 500 ETF","US","지수","S&P 500","Vanguard","0.03"],
+["QQQ","Invesco QQQ Trust","US","지수","Nasdaq-100","Invesco","0.20"],
+["QQQM","Invesco NASDAQ-100 ETF","US","지수","Nasdaq-100","Invesco","0.15"],
+["DIA","SPDR Dow Jones Industrial Average ETF","US","지수","Dow Jones Industrial Average","State Street","0.16"],
+["IWM","iShares Russell 2000 ETF","US","지수","Russell 2000","BlackRock","0.19"],
+["VTI","Vanguard Total Stock Market ETF","US","지수","CRSP US Total Market","Vanguard","0.03"],
+["SOXX","iShares Semiconductor ETF","US","반도체","ICE Semiconductor","BlackRock","0.35"],
+["SMH","VanEck Semiconductor ETF","US","반도체","MVIS US Listed Semiconductor 25","VanEck","0.35"],
+["XLK","Technology Select Sector SPDR Fund","US","테마","Technology Select Sector","State Street",""],
+["SCHD","Schwab U.S. Dividend Equity ETF","US","배당","Dow Jones U.S. Dividend 100","Charles Schwab","0.06"],
+["JEPI","JPMorgan Equity Premium Income ETF","US","배당","S&P 500 커버드콜 (액티브)","J.P. Morgan","0.35"],
+["TQQQ","ProShares UltraPro QQQ","US","레버리지","Nasdaq-100 3배 (일일)","ProShares","0.84"],
+["SQQQ","ProShares UltraPro Short QQQ","US","레버리지","Nasdaq-100 −3배 (일일)","ProShares","0.95"],
+["SOXL","Direxion Daily Semiconductor Bull 3X Shares","US","레버리지","ICE Semiconductor 3배 (일일)","Direxion","0.95"],
+["TLT","iShares 20+ Year Treasury Bond ETF","US","채권","ICE U.S. Treasury 20+ Year Bond","BlackRock","0.15"],
+["BND","Vanguard Total Bond Market ETF","US","채권","Bloomberg U.S. Aggregate Float Adjusted","Vanguard","0.03"],
+["GLD","SPDR Gold Shares","US","원자재","금 현물 (LBMA Gold Price)","State Street","0.40"],
+["SLV","iShares Silver Trust","US","원자재","은 현물 (LBMA Silver Price)","BlackRock","0.50"],
+["069500","KODEX 200","KR","지수","KOSPI 200","삼성자산운용",""],
+["229200","KODEX 코스닥150","KR","지수","코스닥150","삼성자산운용",""],
+["360750","TIGER 미국S&P500","KR","지수","S&P 500","미래에셋자산운용",""],
+["133690","TIGER 미국나스닥100","KR","지수","Nasdaq-100","미래에셋자산운용",""],
+["379800","KODEX 미국S&P500","KR","지수","S&P 500","삼성자산운용",""],
+["379810","KODEX 미국나스닥100","KR","지수","NASDAQ-100","삼성자산운용",""],
+["360200","ACE 미국S&P500","KR","지수","S&P 500","한국투자신탁운용",""],
+["381180","TIGER 미국필라델피아반도체나스닥","KR","반도체","PHLX Semiconductor Sector","미래에셋자산운용",""],
+["091160","KODEX 반도체","KR","반도체","KRX 반도체","삼성자산운용",""],
+["122630","KODEX 레버리지","KR","레버리지","KOSPI 200 2배 (일일)","삼성자산운용",""],
+["252670","KODEX 200선물인버스2X","KR","레버리지","KOSPI 200 선물 −2배 (일일)","삼성자산운용",""],
+["233740","KODEX 코스닥150레버리지","KR","레버리지","코스닥150 2배 (일일)","삼성자산운용",""],
+["458730","TIGER 미국배당다우존스","KR","배당","Dow Jones U.S. Dividend 100","미래에셋자산운용",""],
+["371460","TIGER 차이나전기차SOLACTIVE","KR","테마","Solactive China Electric Vehicle and Battery","미래에셋자산운용",""],
+["132030","KODEX 골드선물(H)","KR","원자재","S&P GSCI Gold","삼성자산운용",""],
+["153130","KODEX 단기채권","KR","채권","국내 단기 국공채·통안채","삼성자산운용",""]];
+function drawEtf(){
+var q=el("q").value.trim().toUpperCase(),qt=el("q").value.trim();
+var r=REALETF.filter(function(x){
+if(etfTh==="US"&&x[2]!=="US")return false;
+if(etfTh==="KR"&&x[2]!=="KR")return false;
+if(etfTh!=="all"&&etfTh!=="US"&&etfTh!=="KR"&&x[3]!==etfTh)return false;
+if(!q)return true;
+return x[0].indexOf(q)>=0||x[1].toUpperCase().indexOf(q)>=0||x[1].indexOf(qt)>=0||x[4].toUpperCase().indexOf(q)>=0||x[5].indexOf(qt)>=0});
+el("tt").textContent="실제 상장 ETF ("+r.length+")";
+function row(x){var fee=x[6]?" · 운용보수 연 "+x[6]+"%":"";
+return '<div class="etfr" role="row"><div class="etfm"><b>'+x[0]+'</b><span class="etfn">'+x[1]+'</span><span class="pill">'+x[3]+'</span></div><div class="etfd"><span>'+x[4]+'</span><span class="etfs">'+x[5]+fee+'</span></div></div>'}
+function grp(label,list){return '<div class="pgrp" role="row"><span>'+label+'</span><span class="pgrpc">'+list.length+'개 종목</span></div>'+list.map(row).join("")}
+var us=r.filter(function(x){return x[2]==="US"}),kr=r.filter(function(x){return x[2]==="KR"}),html="";
+if(us.length)html+=grp("미국 상장 ETF · 나스닥/NYSE",us);
+if(kr.length)html+=grp("국내 상장 ETF · 한국거래소(KRX)",kr);
+if(!r.length)html='<div class="pempty">검색 결과가 없습니다.</div>';
+el("tb").innerHTML=html}
+function draw(){if(etfOn){drawEtf();return}
+var ex=EXN[v];if(!ex)return;
 var q=el("q").value.trim().toUpperCase(),qt=el("q").value.trim(),r=xlist(v).filter(function(x){var s=x[0];
 var can=toCan(v,s.replace(/_$/,"")),isE=isEtf(ex,s,can);
-if(etfOn){if(!isE)return false;if(etfTh!=="all"&&etfTheme(can)!==etfTh)return false}
-else{if(isE)return false;if(flt==="kr"&&!ex.kr[s])return false;if(flt.indexOf("sec:")===0&&secOf(can)!==flt.slice(4))return false}
+if(isE)return false;if(flt==="kr"&&!ex.kr[s])return false;if(flt.indexOf("sec:")===0&&secOf(can)!==flt.slice(4))return false;
 return !q||s.indexOf(q)>=0||(ex.nm[s]||"").indexOf(qt)>=0}).sort(srt);
 var favs=r.filter(function(x){return FAV[toCan(v,x[0].replace(/_$/,""))]}),rest=r.filter(function(x){return !FAV[toCan(v,x[0].replace(/_$/,""))]});
 r=favs.concat(rest);
-el("tt").textContent=ex.label+(etfOn?" ETF 전체 (":" 주식 전체 (")+r.length+")";
-function rowHtml(x){var dn=x[0].replace(/_$/,"");var hl=v==="hl"?HL2[x[0]]:((x[4]>0||x[5]>0)?[x[4],x[5]]:null);var sub=ex.nm[x[0]],can2=toCan(v,dn),sec=isEtf(ex,x[0],can2)?"ETF · "+etfTheme(can2):secOf(can2);return arow(dn,sub?sub+" · "+sec:sec,x,hl)}
+el("tt").textContent=ex.label+" 주식 전체 ("+r.length+")";
+function rowHtml(x){var dn=x[0].replace(/_$/,"");var hl=v==="hl"?HL2[x[0]]:((x[4]>0||x[5]>0)?[x[4],x[5]]:null);var sub=ex.nm[x[0]],can2=toCan(v,dn),sec=secOf(can2);return arow(dn,sub?sub+" · "+sec:sec,x,hl)}
 function grpHtml(label,list){return '<div class="pgrp" role="row"><span>'+label+'</span><span class="pgrpc">'+list.length+'개 종목</span></div>'+list.map(rowHtml).join("")}
 var html;
 if(!r.length)html='<div class="pempty">검색 결과가 없습니다.</div>';
-else if(!etfOn&&flt.indexOf("sec:")===0)html=grpHtml(flt.slice(4),r);
+else if(flt.indexOf("sec:")===0)html=grpHtml(flt.slice(4),r);
 else html=r.map(rowHtml).join("");
 el("tb").innerHTML=html;if(typeof drawF==="function")drawF();spkScan()}
 function arw(t,st){if(!t)return;t.querySelectorAll("th,[data-k]").forEach(function(h){h.classList.toggle("on",!!h.dataset.k&&st.k===h.dataset.k);var s=h.querySelector(".ar");if(s)s.textContent=st.k===h.dataset.k?(st.d===-1?" ▼":" ▲"):""})}
@@ -933,7 +1002,7 @@ el("f").addEventListener("click",function(e){var b=e.target.closest("button");if
 if(b.dataset.f){flt=b.dataset.f;sk={k:"mc",d:-1}}
 syncF();draw()});
 function syncEtfTh(){el("fetf").querySelectorAll("button").forEach(function(x){x.setAttribute("aria-pressed",String(x.dataset.t===etfTh))})}
-function syncMode(){el("pmode").querySelectorAll("button").forEach(function(x){x.setAttribute("aria-pressed",String((x.dataset.pm==="etf")===etfOn))});el("f").hidden=etfOn;el("fetf").hidden=!etfOn}
+function syncMode(){el("pmode").querySelectorAll("button").forEach(function(x){x.setAttribute("aria-pressed",String((x.dataset.pm==="etf")===etfOn))});el("f").hidden=etfOn;el("fetf").hidden=!etfOn;el("xv").hidden=etfOn;el("hh").hidden=etfOn;el("etfnote").hidden=!etfOn;el("q").placeholder=etfOn?"ETF 검색 (이름·티커·종목코드·지수)":"종목 검색";el("q").setAttribute("aria-label",etfOn?"ETF 검색":"해외 종목 검색")}
 el("pmode").addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;var on=b.dataset.pm==="etf";if(on===etfOn)return;etfOn=on;if(!etfOn){etfTh="all";syncEtfTh()}syncMode();draw()});
 el("fetf").addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;etfTh=b.dataset.t;syncEtfTh();draw()});
 el("hh").addEventListener("click",function(e){var h=e.target.closest("[data-k]");if(!h||!h.dataset.k)return;var k=h.dataset.k;
