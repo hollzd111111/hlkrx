@@ -165,8 +165,8 @@ tr.grp td{background:var(--sf2);color:var(--mut);font-weight:700;font-size:12px;
 #xv[hidden]{display:none}
 #pb .phd[hidden]{display:none}
 #etfnote[hidden]{display:none}
-/* 실제 상장 ETF 목록 행: 크립토 perp 행과 분리된 전용 레이아웃 (별·스파크라인·거래소 비교 없음) */
-.etfr{display:flex;align-items:center;gap:10px;padding:11px 10px;border-bottom:1px solid var(--bd)}
+/* 실제 상장 ETF 목록 행: 크립토 perp 행과 분리된 전용 레이아웃. 행 아래에 거래소별 선물 가격 줄(.etfx)이 붙는다 */
+.etfr{display:flex;align-items:center;gap:10px;padding:11px 10px;border-bottom:1px solid var(--bd);flex-wrap:wrap}
 .etfr:last-child{border-bottom:0}
 .etfr:hover{background:var(--sf2)}
 .etfm{display:flex;align-items:center;gap:8px;min-width:0;flex:1 1 auto;flex-wrap:wrap}
@@ -177,6 +177,12 @@ tr.grp td{background:var(--sf2);color:var(--mut);font-weight:700;font-size:12px;
 .etfp b{font-size:15px;font-weight:800;letter-spacing:-.02em;white-space:nowrap}
 .etfp b.na{font-size:13px;font-weight:600}
 .etfs{color:var(--mut);font-size:11.5px}
+/* ETF 행 아래 거래소별 선물 가격 줄: HL·BN·OKX·BY 가격을 한 줄로, 미국 ETF는 실제 가격과의 차이 배지까지 */
+.etfx{display:flex;flex-wrap:wrap;gap:3px 14px;flex-basis:100%;font-size:11.5px;color:var(--mut);align-items:center}
+.etfxl{font-weight:700;color:var(--tx)}
+.etfxc{white-space:nowrap}
+.etfxc i{font-style:normal;font-weight:700;margin-right:4px}
+.etfx .pill{font-size:10.5px;padding:1px 5px}
 @media(max-width:520px){.etfr{flex-direction:column;align-items:flex-start;gap:3px}.etfd{text-align:left}.etfp{justify-content:flex-start}}
 /* 카드·요약 타일 (금·코스피) */
 .c{background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:16px;margin-bottom:12px}
@@ -627,7 +633,7 @@ main{padding:18px 12px 40px}
 <div class="phd" id="hh" role="row"><div role="columnheader">종목</div><div role="columnheader">가격(USD)</div><div role="columnheader" data-k="c">24h<span class="ar"></span></div><div role="columnheader" data-k="v">거래량<span class="ar"></span></div></div>
 <div id="tb"></div>
 </div></div>
-<p class="note" id="etfnote" hidden>실제 거래소에 상장된 ETF입니다. 가격은 TradingView 기준으로 불러와 표시하고 1분마다 갱신합니다(미국 ETF는 달러, 국내 ETF는 원). 조회가 안 될 때는 2026-10-31 조회 스냅샷을 보여줍니다. 레버리지·인버스 ETF는 일일 수익률을 배율로 추종해 장기 보유 시 기초지수 수익률과 크게 달라질 수 있습니다.</p>
+<p class="note" id="etfnote" hidden>실제 거래소에 상장된 ETF입니다. 가격은 TradingView 기준으로 불러와 표시하고 1분마다 갱신합니다(미국 ETF는 달러, 국내 ETF는 원). 조회가 안 될 때는 2026-10-31 조회 스냅샷을 보여줍니다. 같은 종목이나 같은 지수를 추종하는 ETF는 행 아래에 하이퍼리퀴드(HL)·바이낸스(BN)·OKX·바이비트(BY) 선물 가격도 함께 표시하고, 티커가 같은 선물은 실제 가격과의 차이도 보여줍니다. 선물 가격은 각 거래소 시세로 15초마다 갱신됩니다. 레버리지·인버스 ETF는 일일 수익률을 배율로 추종해 장기 보유 시 기초지수 수익률과 크게 달라질 수 있습니다.</p>
 </section>
 <section id="pg" hidden>
 <div class="pick"><span class="xselw mtw"><button type="button" class="xsel" id="mt-btn" aria-haspopup="listbox" aria-expanded="false" aria-label="원자재 선택"><span class="xnm" id="mt-nm">금</span><span class="xca" aria-hidden="true">▾</span></button><div class="xmenu" id="mt-menu" role="listbox" aria-label="원자재 선택" hidden><button type="button" role="option" data-mtv="au" aria-selected="true">금</button><button type="button" role="option" data-mtv="ag" aria-selected="false">은</button><button type="button" role="option" data-mtv="cu" aria-selected="false">구리</button><button type="button" role="option" data-mtv="oil" aria-selected="false">유가</button></div></span><div class="mtx"><small id="mt-xhl-l">Hyperliquid · 1oz 가격</small><b id="mt-xhl">—</b></div><div class="mtx"><small id="mt-xbn-l">Binance · 1oz 가격</small><b id="mt-xbn">—</b></div></div>
@@ -710,7 +716,7 @@ main{padding:18px 12px 40px}
 </div>
 </div>
 </section>
-<details class="dnote"><summary>데이터 갱신 안내</summary><p class="note">Hyperliquid·Binance·OKX·Bybit 가격과 펀딩비는 실시간으로 불러와 15초마다 갱신하고, 펀딩비 탭을 열어 두면 10초마다 갱신합니다. 달러/원 환율(USD/KRW)도 실시간으로 불러와 15초마다 갱신하며, 김프 계산·원화 환산·상단 달러/원 타일에 그대로 반영됩니다. 해외 탭의 실제 상장 ETF(미국·국내) 가격은 TradingView 기준으로 불러와 1분마다 갱신합니다. 원자재 국제 시세(금·은·구리 현물, WTI 유가)도 15초마다 갱신합니다. KRX 가격과 거래량은 장중(평일 09:00–15:30)에는 30초마다 최근 체결가로 갱신하고, 장이 닫힌 동안에는 최근 거래일 종가로 표시합니다. 장이 닫힌 동안에는 해외 거래소 가격만 움직이고 김프도 그에 따라 변합니다. 국내 금·은 시세는 한국금거래소 고시(2026-10-30), 구리 국내 유통가는 한국물가정보 고시(2026년 9월) 기준이라 실시간으로 움직이지 않습니다. 역외 시세는 해외 거래소 파생상품 기준이며 실제 주식 소유권과 무관합니다. 조회가 안 될 때는 마지막 스냅샷(2026-10-28 조회, KRX는 10/23 종가)을 보여줍니다.</p></details>
+<details class="dnote"><summary>데이터 갱신 안내</summary><p class="note">Hyperliquid·Binance·OKX·Bybit 가격과 펀딩비는 실시간으로 불러와 15초마다 갱신하고, 펀딩비 탭을 열어 두면 10초마다 갱신합니다. 달러/원 환율(USD/KRW)도 실시간으로 불러와 15초마다 갱신하며, 김프 계산·원화 환산·상단 달러/원 타일에 그대로 반영됩니다. 해외 탭의 실제 상장 ETF(미국·국내) 가격은 TradingView 기준으로 불러와 1분마다 갱신하고, ETF 행 아래의 거래소 선물(Hyperliquid·Binance·OKX·Bybit) 가격은 다른 시세와 함께 15초마다 갱신합니다. 원자재 국제 시세(금·은·구리 현물, WTI 유가)도 15초마다 갱신합니다. KRX 가격과 거래량은 장중(평일 09:00–15:30)에는 30초마다 최근 체결가로 갱신하고, 장이 닫힌 동안에는 최근 거래일 종가로 표시합니다. 장이 닫힌 동안에는 해외 거래소 가격만 움직이고 김프도 그에 따라 변합니다. 국내 금·은 시세는 한국금거래소 고시(2026-10-30), 구리 국내 유통가는 한국물가정보 고시(2026년 9월) 기준이라 실시간으로 움직이지 않습니다. 역외 시세는 해외 거래소 파생상품 기준이며 실제 주식 소유권과 무관합니다. 조회가 안 될 때는 마지막 스냅샷(2026-10-28 조회, KRX는 10/23 종가)을 보여줍니다.</p></details>
 <footer class="sitefoot">
 <nav aria-label="약관 및 방침"><button type="button" id="legal-priv-open">개인정보처리방침</button><i aria-hidden="true">·</i><button type="button" id="legal-terms-open">이용약관</button></nav>
 <p>© 2026 잡주넷 · 문의는 사이트 내 채팅을 이용해 주세요.</p>
@@ -972,6 +978,11 @@ var REALETF=[
 ["371460","TIGER 차이나전기차SOLACTIVE","KR","테마","Solactive China Electric Vehicle and Battery","미래에셋자산운용",""],
 ["132030","KODEX 골드선물(H)","KR","원자재","S&P GSCI Gold","삼성자산운용",""],
 ["153130","KODEX 단기채권","KR","채권","국내 단기 국공채·통안채","삼성자산운용",""]];
+/* ETF → 크립토 거래소 선물(canonical 티커) 매핑: 같은 종목이거나 같은 지수를 추종하는 선물만 연결한다.
+   연결된 ETF는 행 아래에 HL·BN·OKX·BY 선물 가격을 주식 행처럼 함께 보여준다. 매핑이 없는 ETF는 선물 줄이 없다.
+   예외: KODEX200(069500·122630·252670)은 OKX 매핑을 두지 않는다 — OKX에는 KODEX 200 ETF와 동일 종목인 선물이 없고,
+   KR200은 코스피200 지수 레벨(포인트 단위)이라 ETF 가격($65대)과 단위 자체가 달라 OKX 칸은 항상 "—"로 표시한다 */
+var ETFPERP={"SPY":"SPY","VOO":"SPY","QQQ":"QQQ","QQQM":"QQQ","IWM":"IWM","SMH":"SMH","SOXL":"SOXL","TQQQ":"TQQQ","SQQQ":"SQQQ","TLT":"TLT","069500":"KODEX200","122630":"KODEX200","252670":"KODEX200","360750":"SPY","133690":"QQQ","379800":"SPY","379810":"QQQ","360200":"SPY","381180":"SMH"};
 /* ETF 가격: 키(미국은 티커, 국내는 6자리 코드) → [현재가, 전일대비 %]. 아래는 2026-10-31 조회 스냅샷이고, 실시간 조회가 성공하면 그 값으로 덮어쓴다 */
 var ETFP={"SPY":[755.72,-1.77],"VOO":[694.81,-1.77],"QQQ":[690.49,-3.47],"QQQM":[284.34,-3.46],"DIA":[517.13,-1.07],"IWM":[279.33,-1.65],"VTI":[371.57,-1.76],"SOXX":[471.51,-8.24],"SMH":[522.49,-6.98],"XLK":[179.51,-4.89],"SCHD":[35.78,0.48],"JEPI":[57.56,-0.64],"TQQQ":[62.01,-10.47],"SQQQ":[41.83,10.57],"SOXL":[77.05,-24.75],"TLT":[81.84,0.43],"BND":[71.56,0.25],"GLD":[355.78,-3.47],"SLV":[44.6,-5.67],"069500":[90800,-3.88],"229200":[11910,-4.14],"360750":[25310,-1.04],"133690":[170475,-2.28],"379800":[22945,-1.04],"379810":[25465,-2.28],"360200":[25595,-1.02],"381180":[38285,-3.58],"091160":[106755,-6.49],"122630":[72545,-7.64],"252670":[97,6.59],"233740":[4785,-8.07],"458730":[15175,1.47],"371460":[8245,-0.9],"132030":[22295,-0.78],"153130":[113340,0.02]};
 var etfBusy=false;
@@ -995,7 +1006,13 @@ function row(x){var fee=x[6]?" · 운용보수 연 "+x[6]+"%":"";
 var q=ETFP[x[0]],pr;
 if(q&&q[0]>0){var pv=x[2]==="KR"?f(q[0])+"원":"$"+f(q[0],q[0]<10?3:2);pr='<span class="etfp"><b>'+pv+'</b>'+(q[1]!=null?pc(q[1]):"")+'</span>'}
 else pr='<span class="etfp"><b class="na">—</b></span>';
-return '<div class="etfr" role="row"><div class="etfm"><b>'+x[0]+'</b><span class="etfn">'+x[1]+'</span><span class="pill">'+x[3]+'</span></div><div class="etfd">'+pr+'<span class="etfs">'+x[4]+' · '+x[5]+fee+'</span></div></div>'}
+var strip="",can=ETFPERP[x[0]];
+if(can){var cells=[],any=false;
+[["hl","HL"],["bn","BN"],["okx","OKX"],["by","BY"]].forEach(function(E){var r=(E[0]==="okx"&&can==="KODEX200")?null:xrow(E[0],fromCan(E[0],can));var p=r&&r[1]>0?r[1]:null;if(p!=null)any=true;
+var d="";if(p!=null&&can===x[0]&&q&&q[0]>0){var dv=(p/q[0]-1)*100;d=' <span class="pill '+(dv>0?"up":dv<0?"dn":"")+'">'+(dv>0?"+":"")+dv.toFixed(2)+'%</span>'}
+cells.push('<span class="etfxc"><i>'+E[1]+'</i>'+(p!=null?"$"+f(p,p<10?3:2):"—")+d+'</span>')});
+if(any)strip='<div class="etfx">'+(can!==x[0]?'<span class="etfxl">'+can+' 선물</span>':"")+cells.join("")+'</div>'}
+return '<div class="etfr" role="row"><div class="etfm"><b>'+x[0]+'</b><span class="etfn">'+x[1]+'</span><span class="pill">'+x[3]+'</span></div><div class="etfd">'+pr+'<span class="etfs">'+x[4]+' · '+x[5]+fee+'</span></div>'+strip+'</div>'}
 function grp(label,list){return '<div class="pgrp" role="row"><span>'+label+'</span><span class="pgrpc">'+list.length+'개 종목</span></div>'+list.map(row).join("")}
 var us=r.filter(function(x){return x[2]==="US"}),kr=r.filter(function(x){return x[2]==="KR"}),html="";
 if(us.length)html+=grp("미국 상장 ETF · 나스닥/NYSE",us);
