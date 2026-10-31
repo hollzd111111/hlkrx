@@ -154,6 +154,42 @@ tr.grp td{background:var(--sf2);color:var(--mut);font-weight:700;font-size:12px;
 #pb .nm>div{display:flex;align-items:baseline;gap:7px}
 #pb .nm b,#pb .nm small{min-width:0}
 #pb .av{width:28px;height:28px}
+.etfrow{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.etfbtn{min-height:36px;padding:7px 14px;border:1px solid var(--bd);background:var(--sf);color:var(--mut);border-radius:999px;font:inherit;font-size:13px;font-weight:700;cursor:pointer}
+.etfbtn[aria-pressed="true"]{background:var(--ac);color:var(--acx);border-color:var(--ac)}
+#fetf[hidden]{display:none}
+.topbar{display:flex;align-items:center;gap:12px;padding:7px 2px;border-bottom:1px solid var(--bd);font-size:12px;color:var(--mut);white-space:nowrap;overflow:hidden;margin-top:2px}
+.topbar .tb-i{flex:none}
+.topbar .tb-i b{color:var(--tx);font-weight:700}
+.tb-news{flex:1;min-width:0;display:flex;align-items:center;gap:6px;color:var(--tx);text-decoration:none;transition:opacity .25s}
+.tb-news[hidden]{display:none}
+.tb-news:hover{text-decoration:underline}
+.tb-tag{flex:none;font-size:10.5px;font-weight:700;color:var(--acx);background:var(--ac);border-radius:4px;padding:1px 5px}
+#tb-news-t{overflow:hidden;text-overflow:ellipsis}
+@media(max-width:560px){#tb-dom{display:none}.topbar{gap:9px}}
+#pn .phd,#pn .prow{display:grid;grid-template-columns:34% 27% 17% 22%;align-items:center;width:100%}
+#pn .phd{position:sticky;top:45px;z-index:3;background:var(--sf2);box-shadow:inset 0 -1px 0 var(--bd)}
+#pn .phd>div{padding:11px 10px;font-size:12px;font-weight:600;color:var(--mut);text-align:right;white-space:nowrap;min-width:0;overflow:hidden}
+#pn .phd>div:first-child{text-align:left}
+#pn .prow{border-bottom:1px solid var(--bd)}
+#pn .prow:last-child{border-bottom:0}
+#pn .prow:hover{background:var(--sf2)}
+#pn .prow>div{padding:11px 10px;font-size:13px;line-height:1.55;text-align:right;white-space:nowrap;min-width:0;overflow:hidden}
+#pn .prow>div:first-child{text-align:left}
+#pn .prow .pv{font-size:15px}
+#pn .prow .cx{display:block;color:var(--mut);font-size:11px;font-weight:500;white-space:normal}
+#pn .pempty{padding:11px 10px;font-size:13px;color:var(--mut)}
+#pn .nm b{font-size:13px}
+#pn .nm small{font-size:11.5px;color:var(--mut)}
+#pn .flive{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;color:var(--mut);margin:0 0 10px}
+#pn .msort{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+#pn .msort span{font-size:11.5px;color:var(--mut)}
+#pn .msort button{min-height:30px;padding:4px 10px;border:1px solid var(--bd);background:var(--sf);color:var(--mut);border-radius:999px;font:inherit;font-size:12px;font-weight:600;cursor:pointer}
+#pn .msort button.on{background:var(--ac);color:var(--acx);border-color:var(--ac)}
+.cnt{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:4px 0 12px}
+@media(min-width:1024px){.cnt{grid-template-columns:repeat(4,1fr)}}
+.fgbar{height:6px;border-radius:3px;background:linear-gradient(90deg,#d64545,#e8a13a,#9aa5b1,#57a773,#2e9e5b);margin:8px 6px 2px;position:relative}
+.fgbar i{position:absolute;top:-3px;width:12px;height:12px;border-radius:50%;background:var(--tx);border:2px solid var(--sf);transform:translateX(-50%)}
 /* 카드·요약 타일 (금·코스피) */
 .c{background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:16px;margin-bottom:12px}
 .sum{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
@@ -552,7 +588,14 @@ main{padding:18px 12px 40px}
 <div class="ixt"><small><i id="ixt-fx-d"></i>달러/원</small><b id="ixt-fx-v">—</b><span class="ixc na" id="ixt-fx-c">—</span><span class="ixhl" id="ixt-fx-hl"></span></div>
 <div class="ixt"><small><i id="ixt-oil-d"></i>원유</small><b id="ixt-oil-v">—</b><span class="ixc na" id="ixt-oil-c">—</span><span class="ixhl" id="ixt-oil-hl"></span></div>
 </div>
-<div class="tabs" id="tabs"><button data-t="pa" aria-pressed="true">김프</button><button data-t="pb" aria-pressed="false">해외</button><button data-t="pg" aria-pressed="false">원자재</button><button data-t="pf" aria-pressed="false">펀딩비</button><button data-t="pc" aria-pressed="false">비교</button></div>
+<div class="topbar" aria-label="시장 분위기 지표와 뉴스">
+<span class="tb-i" id="tb-fg">공포·탐욕 <b>—</b></span>
+<span class="tb-i" id="tb-btc">비트코인 <b>—</b></span>
+<span class="tb-i" id="tb-tet">테더 프리미엄 <b>—</b></span>
+<span class="tb-i" id="tb-dom">BTC 도미넌스 <b>—</b></span>
+<a class="tb-news" id="tb-news" target="_blank" rel="noopener" hidden><span class="tb-tag">뉴스</span><span id="tb-news-t"></span></a>
+</div>
+<div class="tabs" id="tabs"><button data-t="pa" aria-pressed="true">김프</button><button data-t="pb" aria-pressed="false">해외</button><button data-t="pn" aria-pressed="false">코인</button><button data-t="pg" aria-pressed="false">원자재</button><button data-t="pf" aria-pressed="false">펀딩비</button><button data-t="pc" aria-pressed="false">비교</button></div>
 <section id="pa">
 <div class="segrow"><div class="pair" id="mk"><button data-m="kr" aria-pressed="true">한국 주식</button><button data-m="us" aria-pressed="false">해외 주식</button></div><div class="pair" id="xc"><button data-x="hl" aria-pressed="true">Hyperliquid</button><button data-x="bn" aria-pressed="false">Binance</button></div></div>
 <div class="st" id="st"><div><b>KRX</b> 상태 확인 중…</div><span></span></div>
@@ -583,13 +626,42 @@ main{padding:18px 12px 40px}
 <button data-f="sec:우주·방산·로봇" aria-pressed="false">우주·방산·로봇</button>
 <button data-f="sec:미디어·엔터" aria-pressed="false">미디어·엔터</button>
 <button data-f="sec:크립토" aria-pressed="false">크립토</button>
-<button data-f="sec:ETF·지수" aria-pressed="false">ETF·지수</button>
 <button data-f="sec:기타" aria-pressed="false">기타</button>
+</div>
+<div class="etfrow"><button type="button" class="etfbtn" id="etfbtn" aria-pressed="false">ETF 보기</button></div>
+<div class="chips" id="fetf" hidden>
+<button type="button" data-t="all" aria-pressed="true">ETF 전체</button>
+<button type="button" data-t="한국" aria-pressed="false">한국</button>
+<button type="button" data-t="지수" aria-pressed="false">지수</button>
+<button type="button" data-t="반도체" aria-pressed="false">반도체</button>
+<button type="button" data-t="레버리지" aria-pressed="false">레버리지</button>
+<button type="button" data-t="채권" aria-pressed="false">채권</button>
+<button type="button" data-t="원자재" aria-pressed="false">원자재</button>
+<button type="button" data-t="테마" aria-pressed="false">테마</button>
+<button type="button" data-t="기타" aria-pressed="false">기타</button>
 </div>
 <div class="wrap"><div class="plist" role="table">
 <div class="phd" id="hh" role="row"><div role="columnheader">종목</div><div role="columnheader">가격(USD)</div><div role="columnheader" data-k="c">24h<span class="ar"></span></div><div role="columnheader" data-k="v">거래량<span class="ar"></span></div></div>
 <div id="tb"></div>
 </div></div>
+</section>
+<section id="pn" hidden>
+<h2>코인 시세</h2>
+<p class="sub" style="margin-bottom:10px">주요 코인의 국내(업비트)·해외(바이낸스) 가격과 김프를 한눈에 봅니다. 코인마다 한글 이름을 함께 표시해 처음 보는 코인도 찾기 쉽습니다.</p>
+<div class="cnt">
+<div class="ixt"><small>공포·탐욕 지수</small><b id="cnt-fg-v">—</b><span class="ixc na" id="cnt-fg-c">불러오는 중</span><div class="fgbar" id="cnt-fg-bar" hidden><i></i></div></div>
+<div class="ixt"><small>비트코인 (업비트)</small><b id="cnt-btc-v">—</b><span class="ixc na" id="cnt-btc-c">—</span></div>
+<div class="ixt"><small>BTC 도미넌스</small><b id="cnt-dom-v">—</b><span class="ixc">전체 시총 중 비트코인 비중</span></div>
+<div class="ixt"><small>테더 프리미엄</small><b id="cnt-tet-v">—</b><span class="ixc na" id="cnt-tet-c">—</span></div>
+</div>
+<p class="flive" role="status"><span class="dot" id="cndot"></span><span id="cnlv">코인 시세 불러오는 중…</span></p>
+<div class="srch"><input id="cnq" placeholder="코인 검색 (한글 이름·심볼)" aria-label="코인 검색"></div>
+<div class="msort" id="cnsort"><span>정렬</span><button type="button" data-k="p" data-l="김프">김프</button><button type="button" data-k="c" data-l="24h">24h</button><button type="button" data-k="v" data-l="거래대금">거래대금</button></div>
+<div class="wrap"><div class="plist" role="table">
+<div class="phd" id="cnh" role="row"><div role="columnheader">코인</div><div role="columnheader">현재가(원)</div><div role="columnheader">24h</div><div role="columnheader">거래대금(24h)</div></div>
+<div id="cnb"></div>
+</div></div>
+<p class="note">가격은 업비트(원화)와 바이낸스(달러) 시세 기준이며, 코인 탭을 열어 두면 15초마다 갱신합니다. 김프 = (국내 가격 ÷ 해외 가격×환율 − 1) × 100으로, +면 국내가 해외보다 비싸다는 뜻입니다. 공포·탐욕 지수는 Alternative.me, BTC 도미넌스는 CoinGecko 기준입니다.</p>
 </section>
 <section id="pg" hidden>
 <div class="pick"><span class="xselw mtw"><button type="button" class="xsel" id="mt-btn" aria-haspopup="listbox" aria-expanded="false" aria-label="원자재 선택"><span class="xnm" id="mt-nm">금</span><span class="xca" aria-hidden="true">▾</span></button><div class="xmenu" id="mt-menu" role="listbox" aria-label="원자재 선택" hidden><button type="button" role="option" data-mtv="au" aria-selected="true">금</button><button type="button" role="option" data-mtv="ag" aria-selected="false">은</button><button type="button" role="option" data-mtv="cu" aria-selected="false">구리</button><button type="button" role="option" data-mtv="oil" aria-selected="false">유가</button></div></span><div class="mtx"><small id="mt-xhl-l">Hyperliquid · 1oz 가격</small><b id="mt-xhl">—</b></div><div class="mtx"><small id="mt-xbn-l">Binance · 1oz 가격</small><b id="mt-xbn">—</b></div></div>
@@ -672,7 +744,7 @@ main{padding:18px 12px 40px}
 </div>
 </div>
 </section>
-<details class="dnote"><summary>데이터 갱신 안내</summary><p class="note">Hyperliquid·Binance·OKX·Bybit 가격과 펀딩비는 실시간으로 불러와 15초마다 갱신하고, 펀딩비 탭을 열어 두면 10초마다 갱신합니다. 달러/원 환율(USD/KRW)도 실시간으로 불러와 15초마다 갱신하며, 김프 계산·원화 환산·상단 달러/원 타일에 그대로 반영됩니다. 원자재 국제 시세(금·은·구리 현물, WTI 유가)도 15초마다 갱신합니다. KRX 가격과 거래량은 장중(평일 09:00–15:30)에는 30초마다 최근 체결가로 갱신하고, 장이 닫힌 동안에는 최근 거래일 종가로 표시합니다. 장이 닫힌 동안에는 해외 거래소 가격만 움직이고 김프도 그에 따라 변합니다. 국내 금·은 시세는 한국금거래소 고시(2026-10-30), 구리 국내 유통가는 한국물가정보 고시(2026년 9월) 기준이라 실시간으로 움직이지 않습니다. 역외 시세는 해외 거래소 파생상품 기준이며 실제 주식 소유권과 무관합니다. 조회가 안 될 때는 마지막 스냅샷(2026-10-28 조회, KRX는 10/23 종가)을 보여줍니다.</p></details>
+<details class="dnote"><summary>데이터 갱신 안내</summary><p class="note">Hyperliquid·Binance·OKX·Bybit 가격과 펀딩비는 실시간으로 불러와 15초마다 갱신하고, 펀딩비 탭을 열어 두면 10초마다 갱신합니다. 코인 탭의 업비트·바이낸스 코인 가격도 탭을 열어 두면 15초마다 갱신합니다. 달러/원 환율(USD/KRW)도 실시간으로 불러와 15초마다 갱신하며, 김프 계산·원화 환산·상단 달러/원 타일에 그대로 반영됩니다. 원자재 국제 시세(금·은·구리 현물, WTI 유가)도 15초마다 갱신합니다. KRX 가격과 거래량은 장중(평일 09:00–15:30)에는 30초마다 최근 체결가로 갱신하고, 장이 닫힌 동안에는 최근 거래일 종가로 표시합니다. 장이 닫힌 동안에는 해외 거래소 가격만 움직이고 김프도 그에 따라 변합니다. 국내 금·은 시세는 한국금거래소 고시(2026-10-30), 구리 국내 유통가는 한국물가정보 고시(2026년 9월) 기준이라 실시간으로 움직이지 않습니다. 역외 시세는 해외 거래소 파생상품 기준이며 실제 주식 소유권과 무관합니다. 조회가 안 될 때는 마지막 스냅샷(2026-10-28 조회, KRX는 10/23 종가)을 보여줍니다.</p></details>
 <footer class="sitefoot">
 <nav aria-label="약관 및 방침"><button type="button" id="legal-priv-open">개인정보처리방침</button><i aria-hidden="true">·</i><button type="button" id="legal-terms-open">이용약관</button></nav>
 <p>© 2026 잡주넷 · 문의는 사이트 내 채팅을 이용해 주세요.</p>
@@ -859,7 +931,7 @@ return '<span class="spk" data-spk="'+key+'" data-can="'+can+'" data-pref="'+pre
 function spkTry(ex,can){
 var raw=fromCan(ex,can),now=Date.now();
 if(ex==="hl")return fetch("https://api.hyperliquid.xyz/info",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"candleSnapshot",req:{coin:"xyz:"+raw,interval:"1h",startTime:now-7*24*3600*1000,endTime:now}})}).then(function(r){if(!r.ok)throw new Error("hl");return r.json()}).then(function(j){var cs=(j||[]).map(function(x){return +x.c}).filter(function(x2){return x2>0});if(cs.length<10)throw new Error("short");return cs});
-if(ex==="bn")return fetch("https://www.binance.com/fapi/v1/klines?symbol="+encodeURIComponent(raw+"USDT")+"&interval=1h&limit=168").then(function(r){if(!r.ok)throw new Error("bn");return r.json()}).then(function(j){var cs=(j||[]).map(function(x){return +x[4]}).filter(function(x2){return x2>0});if(cs.length<10)throw new Error("short");return cs});
+if(ex==="bn"||ex==="cn")return fetch("https://www.binance.com/fapi/v1/klines?symbol="+encodeURIComponent(raw+"USDT")+"&interval=1h&limit=168").then(function(r){if(!r.ok)throw new Error("bn");return r.json()}).then(function(j){var cs=(j||[]).map(function(x){return +x[4]}).filter(function(x2){return x2>0});if(cs.length<10)throw new Error("short");return cs});
 if(ex==="okx")return fetch("https://www.okx.com/api/v5/market/candles?instId="+encodeURIComponent(raw+"-USDT-SWAP")+"&bar=1H&limit=168").then(function(r){if(!r.ok)throw new Error("okx");return r.json()}).then(function(j){var cs=((j&&j.data)||[]).map(function(x){return +x[4]}).filter(function(x2){return x2>0}).reverse();if(cs.length<10)throw new Error("short");return cs});
 function byK(host){return fetch("https://"+host+"/v5/market/kline?category=linear&symbol="+encodeURIComponent(raw+"USDT")+"&interval=60&limit=168").then(function(r){if(!r.ok)throw new Error("by");return r.json()}).then(function(j){var cs=((j&&j.result&&j.result.list)||[]).map(function(x){return +x[4]}).filter(function(x2){return x2>0}).reverse();if(cs.length<10)throw new Error("short");return cs})}
 return byK("api.bybit.com").catch(function(){return byK("api.bytick.com")})}
@@ -877,7 +949,7 @@ if(c){node.innerHTML=spkSvg(c.cs);if(Math.floor(c.t/3600000)===Math.floor(Date.n
 for(var i=0;i<SPKQ.length;i++)if(SPKQ[i].key===key)return;
 SPKQ.push({key:key,can:node.getAttribute("data-can"),pref:node.getAttribute("data-pref")});spkPump()}
 function spkScan(){
-var nodes=document.querySelectorAll("#pa [data-spk],#pb [data-spk]");if(!nodes.length)return;
+var nodes=document.querySelectorAll("#pa [data-spk],#pb [data-spk],#pn [data-spk]");if(!nodes.length)return;
 if(!window.IntersectionObserver){for(var i=0;i<nodes.length;i++)spkQueue(nodes[i]);return}
 if(!SPKIO)SPKIO=new IntersectionObserver(function(es){for(var i=0;i<es.length;i++){if(es[i].isIntersecting){SPKIO.unobserve(es[i].target);spkQueue(es[i].target)}}},{rootMargin:"300px 0px"});
 for(var i=0;i<nodes.length;i++){var n=nodes[i],c=SPKC[n.getAttribute("data-spk")];
@@ -893,15 +965,22 @@ var EXN={hl:{label:"Hyperliquid",nm:NM,kr:KR,et:ET},bn:{label:"Binance",nm:BNM,k
 var SECTORS=["반도체","소프트웨어·AI","플랫폼·인터넷","하드웨어·전자","전기차·자동차","바이오·헬스","금융·핀테크","소비·유통","에너지·소재","산업·기계","우주·방산·로봇","미디어·엔터","크립토","ETF·지수","기타"];
 var SECMAP={AAOI:"반도체",AAPL:"하드웨어·전자",ABBV:"바이오·헬스",ACN:"소프트웨어·AI",ADBE:"소프트웨어·AI",AEHR:"반도체",AGPU:"기타",AKAM:"소프트웨어·AI",ALAB:"반도체",AMAT:"반도체",AMC:"미디어·엔터",AMD:"반도체",AMGN:"바이오·헬스",AMZN:"플랫폼·인터넷",ANET:"하드웨어·전자",ANTHROPIC:"소프트웨어·AI",APLD:"하드웨어·전자",APP:"소프트웨어·AI",ARM:"반도체",ASML:"반도체",ASTS:"우주·방산·로봇",AVGO:"반도체",AXTI:"반도체",BABA:"플랫폼·인터넷",BAC:"금융·핀테크",BB:"소프트웨어·AI",BBX:"ETF·지수",BE:"에너지·소재",BIRD:"소비·유통",BITO:"ETF·지수",BMNR:"크립토",BNC:"크립토",BOT:"우주·방산·로봇",BRKB:"금융·핀테크",BSP:"기타",BWET:"ETF·지수",BX:"금융·핀테크",BYD:"전기차·자동차",CAMBRICON:"반도체",CAT:"산업·기계",CBRS:"반도체",CEG:"에너지·소재",CGNX:"산업·기계",CIEN:"반도체",COHR:"반도체",COIN:"크립토",COST:"소비·유통",CRCL:"크립토",CRDO:"반도체",CRM:"소프트웨어·AI",CRML:"에너지·소재",CRWD:"소프트웨어·AI",CRWV:"소프트웨어·AI",CSCO:"하드웨어·전자",CSOPSAMSUNG2L:"ETF·지수",CSOPSKHYNIX2L:"ETF·지수",CVNA:"전기차·자동차",CVX:"에너지·소재",CXMT:"반도체",CYPH:"크립토",DDOG:"소프트웨어·AI",DELL:"하드웨어·전자",DIS:"미디어·엔터",DJT:"미디어·엔터",DKNG:"미디어·엔터",DRAM:"반도체",EBAY:"플랫폼·인터넷",EWJ:"ETF·지수",EWT:"ETF·지수",EWY:"ETF·지수",EWZ:"ETF·지수",FLEX:"하드웨어·전자",FLNC:"에너지·소재",FLY:"우주·방산·로봇",FWDI:"크립토",GDX:"ETF·지수",GE:"산업·기계",GEV:"에너지·소재",GIGADEV:"반도체",GLW:"하드웨어·전자",GME:"미디어·엔터",GOOGL:"플랫폼·인터넷",GPRO:"하드웨어·전자",GS:"금융·핀테크",GTLB:"소프트웨어·AI",HANMI:"반도체",HD:"소비·유통",HIMS:"바이오·헬스",HK0625:"기타",HK0700:"플랫폼·인터넷",HK0992:"하드웨어·전자",HK1810:"하드웨어·전자",HOOD:"금융·핀테크",HPE:"하드웨어·전자",HUT:"크립토",HYUNDAI:"전기차·자동차",IBKR:"금융·핀테크",IBM:"소프트웨어·AI",INFQ:"기타",INTC:"반도체",INTW:"기타",IONQ:"소프트웨어·AI",IREN:"크립토",ISRG:"바이오·헬스",IWM:"ETF·지수",JIO:"플랫폼·인터넷",JNJ:"바이오·헬스",JP225:"ETF·지수",JPM:"금융·핀테크",KIOXIA:"반도체",KLAC:"반도체",KO:"소비·유통",KODEX200:"ETF·지수",KORU:"ETF·지수",KR200:"ETF·지수",KSTR:"기타",KUAISHOU:"플랫폼·인터넷",LGELECTRONICS:"하드웨어·전자",LITE:"반도체",LLY:"바이오·헬스",LRCX:"반도체",LUNR:"우주·방산·로봇",LYTE:"기타",MAGS:"ETF·지수",MARA:"크립토",MCD:"소비·유통",MDB:"소프트웨어·AI",MDT:"바이오·헬스",MEITUAN:"플랫폼·인터넷",META:"플랫폼·인터넷",MINIMAX:"소프트웨어·AI",MOONSHOT:"소프트웨어·AI",MP:"에너지·소재",MRK:"바이오·헬스",MRNA:"바이오·헬스",MRVL:"반도체",MSFT:"소프트웨어·AI",MSTR:"크립토",MSTU:"ETF·지수",MU:"반도체",MUU:"ETF·지수",MVLL:"ETF·지수",NAVER:"플랫폼·인터넷",NBIS:"소프트웨어·AI",NCLD:"기타",NET:"소프트웨어·AI",NFLX:"미디어·엔터",NKE:"소비·유통",NOK:"하드웨어·전자",NOW:"소프트웨어·AI",NVDA:"반도체",NVDL:"ETF·지수",NVO:"바이오·헬스",OKLO:"에너지·소재",OKTA:"소프트웨어·AI",ON:"반도체",ONDS:"우주·방산·로봇",OPENAI:"소프트웨어·AI",ORCL:"소프트웨어·AI",OSCR:"바이오·헬스",OURA:"하드웨어·전자",OUST:"우주·방산·로봇",PANW:"소프트웨어·AI",PATH:"소프트웨어·AI",PAYP:"금융·핀테크",PDD:"플랫폼·인터넷",PENG:"하드웨어·전자",PLTR:"소프트웨어·AI",POET:"반도체",POPMART:"소비·유통",PURR:"크립토",PURRDAT:"기타",PYPL:"금융·핀테크",QCOM:"반도체",QNT:"크립토",QNTX:"기타",QQQ:"ETF·지수",RAM:"기타",RDDT:"플랫폼·인터넷",RDW:"우주·방산·로봇",RIOT:"크립토",RIVN:"전기차·자동차",RKLB:"우주·방산·로봇",ROK:"산업·기계",RUM:"미디어·엔터",SAMSUNGEM:"하드웨어·전자",SECZ:"기타",SHAZ:"기타",SHEIN:"소비·유통",SHLD:"ETF·지수",SHOP:"플랫폼·인터넷",SIMO:"반도체",SKDD:"ETF·지수",SKHX:"반도체",SKHY:"반도체",SKUU:"ETF·지수",SMCI:"하드웨어·전자",SMH:"ETF·지수",SMSN:"반도체",SNDK:"반도체",SNOW:"소프트웨어·AI",SNPS:"소프트웨어·AI",SNXX:"ETF·지수",SOFI:"금융·핀테크",SOFTBANK:"금융·핀테크",SONY:"하드웨어·전자",SOXL:"ETF·지수",SOXS:"ETF·지수",SPCH:"기타",SPCX:"우주·방산·로봇",SPY:"ETF·지수",SQQQ:"ETF·지수",STRC:"크립토",STXX:"기타",TBT:"ETF·지수",TEAM:"소프트웨어·AI",TEM:"바이오·헬스",TENCENT:"플랫폼·인터넷",TER:"반도체",TLT:"ETF·지수",TMF:"ETF·지수",TQQQ:"ETF·지수",TSEM:"반도체",TSLA:"전기차·자동차",TSLL:"ETF·지수",TSM:"반도체",TTMI:"반도체",TTWO:"미디어·엔터",TWLO:"소프트웨어·AI",TWST:"바이오·헬스",TXN:"반도체",TZA:"ETF·지수",UBER:"플랫폼·인터넷",UMC:"반도체",UNH:"바이오·헬스",UNITREE:"우주·방산·로봇",URNM:"ETF·지수",US100:"ETF·지수",US500:"ETF·지수",USAR:"에너지·소재",USDEX:"기타",USO:"ETF·지수",UVXY:"ETF·지수",V:"금융·핀테크",VICR:"반도체",VKTX:"바이오·헬스",VRT:"하드웨어·전자",VST:"에너지·소재",WDC:"반도체",WEN:"소비·유통",WMT:"소비·유통",XBI:"ETF·지수",XIAOMI:"하드웨어·전자",XLE:"ETF·지수",XOM:"에너지·소재",ZCSH:"기타",ZHIPU:"소프트웨어·AI",ZHONGJI:"반도체",ZM:"소프트웨어·AI",ZS:"소프트웨어·AI"};
 function secOf(can){if(SECMAP[can])return SECMAP[can];try{var xk=["hl","bn","okx","by"];for(var i=0;i<xk.length;i++){var raw=fromCan(xk[i],can);if(EXN[xk[i]].et[raw])return"ETF·지수"}}catch(e){}return"기타"}
+var etfOn=false,etfTh="all";
+var ETFTH={EWY:"한국",KORU:"한국",KODEX200:"한국",KR200:"한국",CSOPSAMSUNG2L:"한국",CSOPSKHYNIX2L:"한국",SKDD:"한국",SKUU:"한국",SPY:"지수",QQQ:"지수",IWM:"지수",US100:"지수",US500:"지수",JP225:"지수",EWJ:"지수",EWT:"지수",EWZ:"지수",MAGS:"지수",BBX:"지수",SMH:"반도체",SOXL:"반도체",SOXS:"반도체",MUU:"반도체",MVLL:"반도체",TQQQ:"레버리지",SQQQ:"레버리지",TSLL:"레버리지",NVDL:"레버리지",MSTU:"레버리지",UVXY:"레버리지",TZA:"레버리지",TLT:"채권",TMF:"채권",TBT:"채권",GDX:"원자재",USO:"원자재",BWET:"원자재",URNM:"원자재",XLE:"원자재",XBI:"테마",BITO:"테마",SHLD:"테마"};
+function etfTheme(can){return ETFTH[can]||"기타"}
+function isEtf(ex,raw,can){return !!((ex&&ex.et&&ex.et[raw])||secOf(can)==="ETF·지수")}
 function draw(){var ex=EXN[v];if(!ex)return;
 var q=el("q").value.trim().toUpperCase(),qt=el("q").value.trim(),r=xlist(v).filter(function(x){var s=x[0];
 if(flt==="kr"&&!ex.kr[s])return false;if(flt==="etf"&&!ex.et[s])return false;
-if(flt.indexOf("sec:")===0&&secOf(toCan(v,s.replace(/_$/,"")))!==flt.slice(4))return false;
+var can=toCan(v,s.replace(/_$/,"")),isE=isEtf(ex,s,can);
+if(isE&&!etfOn)return false;
+if(etfOn&&etfTh!=="all"&&(!isE||etfTheme(can)!==etfTh))return false;
+if(flt.indexOf("sec:")===0&&secOf(can)!==flt.slice(4))return false;
 return !q||s.indexOf(q)>=0||(ex.nm[s]||"").indexOf(qt)>=0}).sort(srt);
 var favs=r.filter(function(x){return FAV[toCan(v,x[0].replace(/_$/,""))]}),rest=r.filter(function(x){return !FAV[toCan(v,x[0].replace(/_$/,""))]});
 r=favs.concat(rest);
-el("tt").textContent=ex.label+" 주식 전체 ("+r.length+")";
-function rowHtml(x){var dn=x[0].replace(/_$/,"");var hl=v==="hl"?HL2[x[0]]:((x[4]>0||x[5]>0)?[x[4],x[5]]:null);var sub=ex.nm[x[0]],sec=secOf(toCan(v,dn));return arow(dn,sub?sub+" · "+sec:sec,x,hl)}
+el("tt").textContent=ex.label+" 주식 전체 ("+r.length+")"+(etfOn?" · ETF 포함":"");
+function rowHtml(x){var dn=x[0].replace(/_$/,"");var hl=v==="hl"?HL2[x[0]]:((x[4]>0||x[5]>0)?[x[4],x[5]]:null);var sub=ex.nm[x[0]],can2=toCan(v,dn),sec=isEtf(ex,x[0],can2)?"ETF · "+etfTheme(can2):secOf(can2);return arow(dn,sub?sub+" · "+sec:sec,x,hl)}
 function grpHtml(label,list){return '<div class="pgrp" role="row"><span>'+label+'</span><span class="pgrpc">'+list.length+'개 종목</span></div>'+list.map(rowHtml).join("")}
 var html;
 if(!r.length)html='<div class="pempty">검색 결과가 없습니다.</div>';
@@ -913,6 +992,9 @@ function syncF(){el("f").querySelectorAll("button").forEach(function(x){x.setAtt
 el("f").addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;
 if(b.dataset.f){flt=b.dataset.f;sk={k:"mc",d:-1}}
 syncF();draw()});
+function syncEtfTh(){el("fetf").querySelectorAll("button").forEach(function(x){x.setAttribute("aria-pressed",String(x.dataset.t===etfTh))})}
+el("etfbtn").addEventListener("click",function(){etfOn=!etfOn;this.setAttribute("aria-pressed",String(etfOn));el("fetf").hidden=!etfOn;if(!etfOn){etfTh="all";syncEtfTh()}draw()});
+el("fetf").addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;etfTh=b.dataset.t;syncEtfTh();draw()});
 el("hh").addEventListener("click",function(e){var h=e.target.closest("[data-k]");if(!h||!h.dataset.k)return;var k=h.dataset.k;
 if(sk.k===k){if(sk.d===-1)sk.d=1;else sk={k:"mc",d:-1}}else sk={k:k,d:-1};syncF();draw()});
 el("q").addEventListener("input",draw);
@@ -2220,6 +2302,132 @@ document.addEventListener("keydown",function(e){if(e.key==="Escape"&&!ov.hidden)
 wire("legal-priv-open","legal-priv-ov","legal-priv-x");
 wire("legal-terms-open","legal-terms-ov","legal-terms-x");
 })();
+</script>
+<script>
+/* ===== 코인 탭 =====
+   주식 탭과 같은 틀(검색·정렬·즐겨찾기·스파크라인)로 주요 코인 시세를 보여준다.
+   국내 가격은 업비트(원화), 해외 가격은 바이낸스(달러) 기준이고 김프는 페이지의 실시간 환율로 계산한다.
+   상단 타일: 공포·탐욕 지수(Alternative.me), 비트코인 가격(업비트), BTC 도미넌스(CoinGecko), 테더 프리미엄(업비트 USDT ÷ 환율).
+   탭을 처음 열 때 불러오고, 열어 둔 동안 15초마다 가격을 갱신한다. */
+var CNL=[["BTC","비트코인"],["ETH","이더리움"],["XRP","리플"],["SOL","솔라나"],["USDT","테더"],["TRX","트론"],["DOGE","도지코인"],["ADA","에이다"],["BCH","비트코인캐시"],["LINK","체인링크"],["XLM","스텔라루멘"],["SUI","수이"],["HBAR","헤데라"],["NEAR","니어프로토콜"],["AVAX","아발란체"],["DOT","폴카닷"],["UNI","유니스왑"],["ATOM","코스모스"],["ETC","이더리움클래식"],["APT","앱토스"],["ARB","아비트럼"],["OP","옵티미즘"],["INJ","인젝티브"],["SEI","세이"],["TIA","셀레스티아"],["STX","스택스"],["IMX","이뮤터블"],["AAVE","아베"],["FIL","파일코인"],["ALGO","알고랜드"],["VET","비체인"],["XTZ","테조스"],["THETA","쎄타토큰"],["SAND","샌드박스"],["AXS","엑시인피니티"],["MANA","디센트럴랜드"],["CHZ","칠리즈"],["NEO","네오"],["PEPE","페페"],["SHIB","시바이누"],["WLD","월드코인"]];
+var CNNM={};CNL.forEach(function(c){CNNM[c[0]]=c[1]});
+var CNU={},CNB={},CNFG=null,CNDOM=null,CNUP=false,cnInit=false;
+var csk={k:"v",d:-1};
+function cnFx(){var v=num(el("fx").value);return v>0?v:1324.6}
+function cnStamp(){var e=el("cnlv");if(!e)return;var n=new Date(),p2=function(z){return (z<10?"0":"")+z};e.textContent="실시간 · "+p2(n.getHours())+":"+p2(n.getMinutes())+":"+p2(n.getSeconds())+" 업데이트";var d=el("cndot");if(d)d.className="dot ok"}
+function cnUpbit(){
+var mk=CNL.map(function(c){return "KRW-"+c[0]}).join(",");
+fetch("https://api.upbit.com/v1/ticker?markets="+mk).then(function(r){return r.json()}).then(function(j){
+if(!j||!j.length)return;
+j.forEach(function(x){var s=String(x.market).slice(4);CNU[s]={p:x.trade_price,c:x.signed_change_rate*100,v:x.acc_trade_price_24h}});
+CNUP=true;cnTiles();cnDraw();cnStamp()}).catch(function(){})}
+function cnBin(){
+var syms=CNL.filter(function(c){return c[0]!=="USDT"}).map(function(c){return '"'+c[0]+'USDT"'}).join(",");
+fetch("https://www.binance.com/fapi/v1/ticker/24hr?symbols="+encodeURIComponent("["+syms+"]")).then(function(r){return r.json()}).then(function(j){
+if(!j||!j.length){cnBybit();return}
+var got=false;
+j.forEach(function(x){if(!x||!x.symbol)return;var s=x.symbol.replace(/USDT$/,"");if(!CNNM[s])return;var p=parseFloat(x.lastPrice);if(p>0){CNB[s]={p:p,c:parseFloat(x.priceChangePercent)};got=true}});
+if(got)cnDraw();else cnBybit()}).catch(function(){cnBybit()})}
+function cnBybit(){
+fetch("https://api.bybit.com/v5/market/tickers?category=linear").then(function(r){return r.json()}).then(function(j){
+var list=(j&&j.result&&j.result.list)||[],ch=false;
+list.forEach(function(x){if(!x.symbol||x.symbol.slice(-4)!=="USDT")return;var s=x.symbol.slice(0,-4);if(!CNNM[s]||CNB[s])return;var p=parseFloat(x.lastPrice);if(p>0){CNB[s]={p:p,c:parseFloat(x.price24hPcnt)*100};ch=true}});
+if(ch)cnDraw()}).catch(function(){})}
+function cnFgKo(cls){return{"Extreme Fear":"극단적 공포","Fear":"공포","Neutral":"중립","Greed":"탐욕","Extreme Greed":"극단적 탐욕"}[cls]||cls||""}
+function cnFng(){fetch("https://api.alternative.me/fng/?limit=1").then(function(r){return r.json()}).then(function(j){
+var d=j&&j.data&&j.data[0];if(!d)return;var v=parseInt(d.value,10);if(isNaN(v))return;CNFG={v:v,cls:d.value_classification};cnTiles()}).catch(function(){})}
+function cnDom(){fetch("https://api.coingecko.com/api/v3/global").then(function(r){return r.json()}).then(function(j){
+var d=j&&j.data;if(d&&d.market_cap_percentage&&d.market_cap_percentage.btc>0){CNDOM=d.market_cap_percentage.btc;cnTiles()}}).catch(function(){})}
+function cnTiles(){
+if(CNFG){el("cnt-fg-v").textContent=CNFG.v;var fc=el("cnt-fg-c");fc.textContent=cnFgKo(CNFG.cls);fc.className="ixc "+(CNFG.v<25?"dn":CNFG.v>74?"up":"");var fb=el("cnt-fg-bar");fb.hidden=false;fb.firstElementChild.style.left=CNFG.v+"%"}
+var b=CNU.BTC;
+if(b){el("cnt-btc-v").textContent="₩"+f(b.p);var bc=el("cnt-btc-c");bc.textContent=(b.c>0?"+":"")+b.c.toFixed(2)+"% (24h)";bc.className="ixc "+(b.c>0?"up":b.c<0?"dn":"")}
+if(CNDOM!=null)el("cnt-dom-v").textContent=CNDOM.toFixed(1)+"%";
+var u=CNU.USDT;
+if(u){var fx=cnFx(),tp=(u.p/fx-1)*100,tv=el("cnt-tet-v");tv.textContent=(tp>0?"+":"")+tp.toFixed(2)+"%";tv.className=tp>0?"up":tp<0?"dn":"";var tc=el("cnt-tet-c");tc.textContent="테더 ₩"+f(u.p,1)+" · 환율 ₩"+f(fx,1);tc.className="ixc"}}
+function cnDraw(){
+var tb=el("cnb");if(!tb)return;
+var q=el("cnq").value.trim(),qu=q.toUpperCase(),fx=cnFx();
+var rows=CNL.map(function(c){var s=c[0],u=CNU[s];if(!u)return null;
+var b=CNB[s],kp=null;
+if(b&&b.p>0)kp=(u.p/(b.p*fx)-1)*100;
+return{s:s,nm:c[1],u:u,b:b,kp:kp}}).filter(function(r){return r&&(!q||r.s.indexOf(qu)>=0||r.nm.indexOf(q)>=0)});
+rows.sort(function(a,b){
+if(csk.k==="c")return (a.u.c-b.u.c)*csk.d;
+if(csk.k==="p"){if(a.kp==null&&b.kp==null)return 0;if(a.kp==null)return 1;if(b.kp==null)return -1;return (a.kp-b.kp)*csk.d}
+return (a.u.v-b.u.v)*csk.d});
+var favs=rows.filter(function(r){return FAV[r.s]}),rest=rows.filter(function(r){return !FAV[r.s]});
+rows=favs.concat(rest);
+el("cnsort").querySelectorAll("button").forEach(function(x){var on=x.dataset.k===csk.k;x.classList.toggle("on",on);x.textContent=x.dataset.l+(on?(csk.d===-1?" ▼":" ▲"):"")});
+if(!rows.length){tb.innerHTML='<div class="pempty">'+(CNUP?"검색 결과가 없습니다.":"코인 시세를 불러오는 중입니다…")+"</div>";return}
+tb.innerHTML=rows.map(function(r){var u=r.u,sub="";
+if(r.b)sub="$"+f(r.b.p,r.b.p<10?3:2);
+if(r.kp!=null)sub+=(sub?" · ":"")+"김프 "+(r.kp>0?"+":"")+r.kp.toFixed(2)+"%";
+return '<div class="prow" role="row"><div role="cell"><div class="nm">'+av(r.s)+'<div><b>'+r.nm+'</b> <small>'+r.s+'</small></div>'+fvBtn(r.s)+spkHtml(r.s==="USDT"?"":r.s,"cn")+'</div></div><div role="cell"><b class="pv">'+f(u.p,u.p<1?4:u.p<100?2:0)+'</b>'+(sub?'<span class="cx">'+sub+'</span>':"")+'</div><div role="cell">'+pc(u.c)+'</div><div role="cell"><b>'+won(u.v/1e8)+'</b></div></div>'}).join("");
+spkScan()}
+function cnAll(){cnUpbit();cnBin();cnFng();cnDom()}
+el("tabs").addEventListener("click",function(e){var b=e.target.closest("button");if(b&&b.dataset.t==="pn"&&!cnInit){cnInit=true;cnAll()}});
+el("cnq").addEventListener("input",cnDraw);
+el("cnsort").addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;var k=b.dataset.k;
+if(csk.k===k){if(csk.d===-1)csk.d=1;else csk={k:"v",d:-1}}
+else csk={k:k,d:-1};
+cnDraw()});
+document.addEventListener("click",function(e){var b=e.target&&e.target.closest?e.target.closest("#pn [data-fv]"):null;if(b)cnDraw()});
+el("fx").addEventListener("input",function(){if(cnInit){cnTiles();cnDraw()}});
+setInterval(function(){if(!cnInit||document.hidden||el("pn").hidden)return;cnUpbit();cnBin()},15000);
+setInterval(function(){if(!cnInit||document.hidden)return;cnFng();cnDom()},1800000);
+</script>
+<script>
+/* ===== 상단 컴팩트 바: 시장 분위기 지표 + 뉴스 헤드라인 =====
+   탭 위쪽 한 줄에 공포·탐욕, 비트코인, 테더 프리미엄, BTC 도미넌스를 작게 보여주고,
+   오른쪽에는 최신 코인 뉴스 헤드라인을 6초마다 바꿔 띄운다(누르면 기사로 이동).
+   값은 페이지가 열리면 바로 불러오고, 코인 탭 타일과 같은 데이터를 공유한다. */
+var TBNEWS=[],tbNi=0;
+function tbDraw(){
+if(CNFG)el("tb-fg").innerHTML="공포·탐욕 <b>"+CNFG.v+"</b> <span class=\""+(CNFG.v<25?"dn":CNFG.v>74?"up":"")+"\">"+cnFgKo(CNFG.cls)+"</span>";
+var b=CNU.BTC;
+if(b)el("tb-btc").innerHTML="비트코인 <b>₩"+f(b.p)+"</b> <span class=\""+(b.c>0?"up":b.c<0?"dn":"")+"\">"+(b.c>0?"+":"")+b.c.toFixed(2)+"%</span>";
+var u=CNU.USDT;
+if(u){var fx=cnFx(),tp=(u.p/fx-1)*100;el("tb-tet").innerHTML="테더 프리미엄 <b class=\""+(tp>0?"up":tp<0?"dn":"")+"\">"+(tp>0?"+":"")+tp.toFixed(2)+"%</b>"}
+if(CNDOM!=null)el("tb-dom").innerHTML="BTC 도미넌스 <b>"+CNDOM.toFixed(1)+"%</b>"}
+function tbPrices(){fetch("https://api.upbit.com/v1/ticker?markets=KRW-BTC,KRW-USDT").then(function(r){return r.json()}).then(function(j){
+if(!j||!j.length)return;
+j.forEach(function(x){var s=String(x.market).slice(4);CNU[s]={p:x.trade_price,c:x.signed_change_rate*100,v:x.acc_trade_price_24h}});
+tbDraw();cnTiles()}).catch(function(){})}
+function tbMeta(){
+fetch("https://api.alternative.me/fng/?limit=1").then(function(r){return r.json()}).then(function(j){
+var d=j&&j.data&&j.data[0];if(!d)return;var v=parseInt(d.value,10);if(isNaN(v))return;CNFG={v:v,cls:d.value_classification};tbDraw();cnTiles()}).catch(function(){});
+fetch("https://api.coingecko.com/api/v3/global").then(function(r){return r.json()}).then(function(j){
+var d=j&&j.data;if(d&&d.market_cap_percentage&&d.market_cap_percentage.btc>0){CNDOM=d.market_cap_percentage.btc;tbDraw();cnTiles()}}).catch(function(){})}
+function tbNewsShow(){
+if(!TBNEWS.length)return;
+var a=el("tb-news"),it=TBNEWS[tbNi%TBNEWS.length];
+a.style.opacity="0";
+setTimeout(function(){a.href=it.u;el("tb-news-t").textContent=it.t;a.hidden=false;a.style.opacity="1"},a.hidden?0:260)}
+function tbNewsFetch(){
+var rss="https://news.google.com/rss/search?q="+encodeURIComponent("비트코인 OR 이더리움 OR 가상자산")+"&hl=ko&gl=KR&ceid=KR:ko";
+function done(out){if(!out.length)return false;TBNEWS=out;tbNi=0;tbNewsShow();return true}
+function viaXml(px){
+fetch(px+encodeURIComponent(rss)).then(function(r){if(!r.ok)throw new Error("http");return r.text()}).then(function(t){
+var doc=new DOMParser().parseFromString(t,"text/xml"),items=doc.querySelectorAll("item"),out=[];
+for(var k=0;k<items.length&&out.length<6;k++){var tt=items[k].querySelector("title"),ll=items[k].querySelector("link");
+if(tt&&ll)out.push({t:tt.textContent.replace(/\s+-\s+[^-]+$/,""),u:ll.textContent})}
+if(!done(out))viaXml2()}).catch(function(){viaXml2()})}
+function viaXml2(){
+fetch("https://api.allorigins.win/raw?url="+encodeURIComponent(rss)).then(function(r){if(!r.ok)throw new Error("http");return r.text()}).then(function(t){
+var doc=new DOMParser().parseFromString(t,"text/xml"),items=doc.querySelectorAll("item"),out=[];
+for(var k=0;k<items.length&&out.length<6;k++){var tt=items[k].querySelector("title"),ll=items[k].querySelector("link");
+if(tt&&ll)out.push({t:tt.textContent.replace(/\s+-\s+[^-]+$/,""),u:ll.textContent})}
+done(out)}).catch(function(){})}
+fetch("https://api.rss2json.com/v1/api.json?rss_url="+encodeURIComponent(rss)).then(function(r){return r.json()}).then(function(j){
+var out=[];
+((j&&j.items)||[]).forEach(function(it){if(out.length<6&&it.title&&it.link)out.push({t:String(it.title).replace(/\s+-\s+[^-]+$/,""),u:it.link})});
+if(!done(out))viaXml("https://api.codetabs.com/v1/proxy?quest=")}).catch(function(){viaXml("https://api.codetabs.com/v1/proxy?quest=")})}
+tbPrices();tbMeta();tbNewsFetch();
+setInterval(function(){if(!document.hidden)tbPrices()},60000);
+setInterval(function(){if(!document.hidden)tbMeta()},1800000);
+setInterval(function(){if(!document.hidden)tbNewsFetch()},600000);
+setInterval(function(){if(document.hidden||TBNEWS.length<2)return;tbNi++;tbNewsShow()},6000);
 </script>
 <!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "6c6e8ab4e4ea4777bf54ca7e737337b9"}'></script><!-- End Cloudflare Web Analytics -->
 </body>
