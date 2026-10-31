@@ -835,7 +835,7 @@ return"<div class=prow role=row><div role=cell><div class=nm>"+spkHtml(toCan(v,t
    화면에 보이는 행만 골라(IntersectionObserver) 현재 탭에서 고른 거래소의 캔들을 받아오고,
    그 거래소에 없으면 Binance → Hyperliquid → Bybit → OKX 순으로 다른 거래소에서 받아온다.
    받아온 종가 배열은 캐시에 넣어, 15초 가격 갱신으로 행이 다시 그려져도 차트가 그대로 유지되고,
-   10분이 지나면 다음에 보일 때 한 번만 다시 받아온다. 못 받아온 종목은 빈칸으로 남는다. */
+   매시 정각(1시간봉이 완성되는 시점)에 전 종목이 한 번씩 새로 받아 다시 그린다. 못 받아온 종목은 빈칸으로 남는다. */
 var SPKC={},SPKQ=[],SPKA=0,SPKIO=null;
 function spkSvg(cs){
 var W=88,H=38,P=2,i,mn=Infinity,mx=-Infinity;
@@ -873,7 +873,7 @@ spkFetch(it.key,it.can,it.pref).catch(function(){}).then(function(){SPKA--;spkPu
 function spkQueue(node){
 var key=node.getAttribute("data-spk");if(!key)return;
 var c=SPKC[key];
-if(c){node.innerHTML=spkSvg(c.cs);if(Date.now()-c.t<600000)return}
+if(c){node.innerHTML=spkSvg(c.cs);if(Math.floor(c.t/3600000)===Math.floor(Date.now()/3600000))return}
 for(var i=0;i<SPKQ.length;i++)if(SPKQ[i].key===key)return;
 SPKQ.push({key:key,can:node.getAttribute("data-can"),pref:node.getAttribute("data-pref")});spkPump()}
 function spkScan(){
@@ -881,8 +881,11 @@ var nodes=document.querySelectorAll("#pa [data-spk],#pb [data-spk]");if(!nodes.l
 if(!window.IntersectionObserver){for(var i=0;i<nodes.length;i++)spkQueue(nodes[i]);return}
 if(!SPKIO)SPKIO=new IntersectionObserver(function(es){for(var i=0;i<es.length;i++){if(es[i].isIntersecting){SPKIO.unobserve(es[i].target);spkQueue(es[i].target)}}},{rootMargin:"300px 0px"});
 for(var i=0;i<nodes.length;i++){var n=nodes[i],c=SPKC[n.getAttribute("data-spk")];
-if(n.firstChild&&c&&Date.now()-c.t<600000)continue;
+if(n.firstChild&&c&&Math.floor(c.t/3600000)===Math.floor(Date.now()/3600000))continue;
 SPKIO.observe(n)}}
+/* 매시 정각 타이머: 1시간봉이 완성되는 시점에 맞춰 화면의 스파크라인을 전부 다시 스캔해,
+   정각을 지난(이전 시간에 받아온) 캐시는 새로 받아 그리게 한다. 다음 정각마다 스스로 다시 건다. */
+(function spkHourly(){var wait=3600000-(Date.now()%3600000)+1500;setTimeout(function(){spkScan();spkHourly()},wait)})();
 var EXN={hl:{label:"Hyperliquid",nm:NM,kr:KR,et:ET},bn:{label:"Binance",nm:BNM,kr:BKR,et:BET},okx:{label:"OKX",nm:ONM,kr:OKR,et:OET},by:{label:"Bybit",nm:YNM,kr:YKR,et:YET}};
 /* 해외 탭 섹터 분류: canonical 티커 기준 전 종목에 섹터를 붙인다.
    '전체'·'한국 관련'은 섹터로 묶지 않고 전 종목을 시가총액 순(기본 정렬) 한 줄 목록으로 보여주고, 섹터 칩을 누르면 그 섹터 종목만 나온다.
